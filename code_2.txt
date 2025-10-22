@@ -1,0 +1,2909 @@
+================================================================
+Directory Structure
+================================================================
+currify-currency-switcher/
+  assets/
+    css/
+      admin.css
+      frontend.css
+    js/
+      admin.js
+      frontend.js
+  includes/
+    class-admin-settings.php
+    class-frontend-logic.php
+    class-hpos-compatibility.php
+    class-order-meta.php
+    class-product-meta.php
+  currify-currency-switcher.php
+
+================================================================
+Files
+================================================================
+
+================
+File: currify-currency-switcher/assets/css/admin.css
+================
+ 1: /**
+ 2:  * Currify Admin Styles
+ 3:  */
+ 4: 
+ 5: /* Currency manager table */
+ 6: .currify-currency-manager {
+ 7:     margin-top: 20px;
+ 8: }
+ 9: 
+10: .currify-currency-manager table img {
+11:     vertical-align: middle;
+12: }
+13: 
+14: /* Flag preview */
+15: #currify-flag-preview {
+16:     margin-top: 10px;
+17: }
+18: 
+19: #currify-flag-preview img {
+20:     max-width: 100px;
+21:     height: auto;
+22:     border: 1px solid #ddd;
+23:     padding: 5px;
+24:     background: #fff;
+25: }
+26: 
+27: /* Payment management */
+28: .currify-payment-management {
+29:     background: #fff;
+30: }
+31: 
+32: .currify-payment-summary {
+33:     margin-bottom: 20px;
+34: }
+35: 
+36: .currify-payment-summary p {
+37:     margin: 8px 0;
+38: }
+39: 
+40: /* Order currency info */
+41: .currify-order-info {
+42:     margin-top: 20px;
+43: }
+44: 
+45: .currify-order-info h3 {
+46:     margin-top: 0;
+47:     color: #2271b1;
+48: }
+49: 
+50: /* Form table in meta box */
+51: #currify-add-payment-form .form-table th {
+52:     width: 200px;
+53: }
+54: 
+55: #currify-add-payment-form .form-table input[type="number"],
+56: #currify-add-payment-form .form-table select {
+57:     width: 100%;
+58:     max-width: 300px;
+59: }
+60: 
+61: #currify-add-payment-form .form-table textarea {
+62:     width: 100%;
+63:     max-width: 500px;
+64: }
+65: 
+66: /* Payment history table */
+67: .currify-payment-management table {
+68:     margin-top: 15px;
+69: }
+70: 
+71: /* Messages */
+72: #currify-payment-message,
+73: #currify-cron-message {
+74:     margin-left: 10px;
+75:     font-weight: bold;
+76: }
+77: 
+78: /* Product pricing tab */
+79: #currify_pricing_data h4 {
+80:     margin: 0 0 10px 0;
+81:     color: #2271b1;
+82: }
+83: 
+84: #currify_pricing_data .woocommerce_options_panel input {
+85:     width: 100%;
+86: }
+
+================
+File: currify-currency-switcher/assets/css/frontend.css
+================
+ 1: /**
+ 2:  * Currify Frontend Styles
+ 3:  */
+ 4: 
+ 5: .currify-switcher-wrapper {
+ 6:     display: inline-block;
+ 7:     position: relative;
+ 8: }
+ 9: 
+10: .currify-currency-selector {
+11:     padding: 8px 12px;
+12:     font-size: 14px;
+13:     border: 1px solid #ddd;
+14:     border-radius: 4px;
+15:     background: #fff;
+16:     cursor: pointer;
+17:     transition: all 0.3s ease;
+18: }
+19: 
+20: .currify-currency-selector:hover {
+21:     border-color: #999;
+22: }
+23: 
+24: .currify-currency-selector:focus {
+25:     outline: none;
+26:     border-color: #2271b1;
+27:     box-shadow: 0 0 0 1px #2271b1;
+28: }
+29: 
+30: /* Admin bargain field styling */
+31: .currify-admin-bargain {
+32:     animation: currify-fade-in 0.3s ease-in;
+33: }
+34: 
+35: @keyframes currify-fade-in {
+36:     from {
+37:         opacity: 0;
+38:         transform: translateY(-10px);
+39:     }
+40:     to {
+41:         opacity: 1;
+42:         transform: translateY(0);
+43:     }
+44: }
+45: 
+46: .currify-admin-bargain h4 {
+47:     margin: 0 0 10px 0;
+48:     color: #856404;
+49:     font-size: 16px;
+50: }
+51: 
+52: .currify-admin-bargain input[type="number"] {
+53:     padding: 8px;
+54:     border: 1px solid #ffc107;
+55:     border-radius: 4px;
+56: }
+57: 
+58: .currify-admin-bargain .description {
+59:     font-size: 12px;
+60:     color: #856404;
+61:     margin-top: 5px;
+62: }
+63: 
+64: /* Price conversion animation */
+65: .woocommerce-Price-amount {
+66:     transition: opacity 0.2s ease;
+67: }
+68: 
+69: .woocommerce-Price-amount.currify-converting {
+70:     opacity: 0.6;
+71: }
+72: 
+73: /* Widget styling */
+74: .widget_currify_currency_widget select {
+75:     width: 100%;
+76: }
+77: 
+78: /* Mobile responsive */
+79: @media (max-width: 768px) {
+80:     .currify-currency-selector {
+81:         width: 100%;
+82:         max-width: 200px;
+83:     }
+84:     
+85:     .currify-admin-bargain {
+86:         padding: 10px;
+87:     }
+88: }
+
+================
+File: currify-currency-switcher/assets/js/admin.js
+================
+ 1: /**
+ 2:  * Currify Admin JavaScript
+ 3:  */
+ 4: 
+ 5: (function($) {
+ 6:     'use strict';
+ 7: 
+ 8:     const CurrifyAdmin = {
+ 9:         
+10:         /**
+11:          * Initialize
+12:          */
+13:         init: function() {
+14:             this.handleProductPricing();
+15:         },
+16: 
+17:         /**
+18:          * Handle product pricing tab
+19:          */
+20:         handleProductPricing: function() {
+21:             // Auto-calculate converted prices when base price changes
+22:             $('#_regular_price, #_sale_price').on('change', function() {
+23:                 CurrifyAdmin.suggestConvertedPrices();
+24:             });
+25:         },
+26: 
+27:         /**
+28:          * Suggest converted prices
+29:          */
+30:         suggestConvertedPrices: function() {
+31:             // This could be enhanced to auto-fill currency-specific prices
+32:             // based on the base price and current exchange rates
+33:             console.log('Price changed - consider updating currency-specific prices');
+34:         }
+35:     };
+36: 
+37:     // Initialize on document ready
+38:     $(document).ready(function() {
+39:         CurrifyAdmin.init();
+40:     });
+41: 
+42: })(jQuery);
+
+================
+File: currify-currency-switcher/assets/js/frontend.js
+================
+  1: /**
+  2:  * Currify Frontend JavaScript
+  3:  * 
+  4:  * Handles AJAX price conversion and currency switching
+  5:  */
+  6: 
+  7: (function($) {
+  8:     'use strict';
+  9: 
+ 10:     const Currify = {
+ 11:         
+ 12:         /**
+ 13:          * Initialize
+ 14:          */
+ 15:         init: function() {
+ 16:             this.bindEvents();
+ 17:             this.convertAllPrices();
+ 18:         },
+ 19: 
+ 20:         /**
+ 21:          * Bind events
+ 22:          */
+ 23:         bindEvents: function() {
+ 24:             // Currency switcher change
+ 25:             $(document).on('change', '#currify-currency-selector', this.handleCurrencySwitch.bind(this));
+ 26:             
+ 27:             // Re-convert prices on AJAX complete (for dynamic content)
+ 28:             $(document).ajaxComplete(function() {
+ 29:                 Currify.convertAllPrices();
+ 30:             });
+ 31:         },
+ 32: 
+ 33:         /**
+ 34:          * Handle currency switch
+ 35:          */
+ 36:         handleCurrencySwitch: function(e) {
+ 37:             const currency = $(e.target).val();
+ 38:             
+ 39:             $.ajax({
+ 40:                 url: currifyData.ajaxUrl,
+ 41:                 type: 'POST',
+ 42:                 data: {
+ 43:                     action: 'currify_switch_currency',
+ 44:                     nonce: currifyData.nonce,
+ 45:                     currency: currency
+ 46:                 },
+ 47:                 success: function(response) {
+ 48:                     if (response.success) {
+ 49:                         // Update current currency in data
+ 50:                         currifyData.currentCurrency = currency;
+ 51:                         
+ 52:                         // Reload page to reflect new currency
+ 53:                         location.reload();
+ 54:                     }
+ 55:                 }
+ 56:             });
+ 57:         },
+ 58: 
+ 59:         /**
+ 60:          * Convert all prices on page
+ 61:          */
+ 62:         convertAllPrices: function() {
+ 63:             const currentCurrency = currifyData.currentCurrency;
+ 64:             const baseCurrency = currifyData.baseCurrency;
+ 65:             
+ 66:             // If same as base, no conversion needed
+ 67:             if (currentCurrency === baseCurrency) {
+ 68:                 return;
+ 69:             }
+ 70:             
+ 71:             // Find all WooCommerce price elements
+ 72:             const priceSelectors = [
+ 73:                 '.woocommerce-Price-amount',
+ 74:                 '.amount',
+ 75:                 '.price',
+ 76:                 '.woocommerce-Price-amount.amount',
+ 77:                 'span.woocommerce-Price-amount',
+ 78:                 '.product-price .amount',
+ 79:                 '.cart-subtotal .amount',
+ 80:                 '.order-total .amount',
+ 81:                 '.cart_item .amount',
+ 82:                 'td.product-price .amount',
+ 83:                 'td.product-subtotal .amount'
+ 84:             ];
+ 85:             
+ 86:             const $prices = $(priceSelectors.join(', '));
+ 87:             
+ 88:             $prices.each(function() {
+ 89:                 const $el = $(this);
+ 90:                 
+ 91:                 // Skip if already converted
+ 92:                 if ($el.data('currify-converted')) {
+ 93:                     return;
+ 94:                 }
+ 95:                 
+ 96:                 // Extract numeric value from price
+ 97:                 let priceText = $el.text().trim();
+ 98:                 let numericPrice = Currify.extractNumericPrice(priceText);
+ 99:                 
+100:                 if (numericPrice > 0) {
+101:                     Currify.convertAndReplace($el, numericPrice, currentCurrency);
+102:                 }
+103:             });
+104:         },
+105: 
+106:         /**
+107:          * Extract numeric price from text
+108:          */
+109:         extractNumericPrice: function(text) {
+110:             // Remove currency symbols and non-numeric characters except . and ,
+111:             let cleaned = text.replace(/[^\d.,]/g, '');
+112:             
+113:             // Handle different decimal formats
+114:             // Assume last separator is decimal if there are multiple
+115:             const separators = cleaned.match(/[.,]/g);
+116:             
+117:             if (separators && separators.length > 1) {
+118:                 // Multiple separators, last one is decimal
+119:                 const lastSeparatorIndex = cleaned.lastIndexOf(separators[separators.length - 1]);
+120:                 cleaned = cleaned.substring(0, lastSeparatorIndex).replace(/[.,]/g, '') + 
+121:                           '.' + cleaned.substring(lastSeparatorIndex + 1);
+122:             } else if (separators && separators.length === 1) {
+123:                 // Single separator
+124:                 // Check if it's likely a thousand separator (3 digits after) or decimal
+125:                 const parts = cleaned.split(separators[0]);
+126:                 if (parts[1] && parts[1].length === 3 && parts.length === 2) {
+127:                     // Likely thousand separator
+128:                     cleaned = cleaned.replace(/[.,]/g, '');
+129:                 } else {
+130:                     // Decimal separator
+131:                     cleaned = cleaned.replace(',', '.');
+132:                 }
+133:             }
+134:             
+135:             return parseFloat(cleaned) || 0;
+136:         },
+137: 
+138:         /**
+139:          * Convert and replace price element
+140:          */
+141:         convertAndReplace: function($el, basePrice, targetCurrency) {
+142:             const currencies = currifyData.currencies;
+143:             
+144:             if (!currencies[targetCurrency]) {
+145:                 return;
+146:             }
+147:             
+148:             const exchangeRate = parseFloat(currencies[targetCurrency].exchange_rate);
+149:             const convertedPrice = basePrice * exchangeRate;
+150:             
+151:             // Format the price
+152:             const formattedPrice = this.formatPrice(convertedPrice, currencies[targetCurrency]);
+153:             
+154:             // Replace content
+155:             $el.html(formattedPrice);
+156:             $el.data('currify-converted', true);
+157:             $el.data('currify-original', basePrice);
+158:         },
+159: 
+160:         /**
+161:          * Format price according to currency settings
+162:          */
+163:         formatPrice: function(price, currencySettings) {
+164:             const decimals = parseInt(currencySettings.decimals) || 2;
+165:             const decimalSep = currencySettings.decimal_sep || '.';
+166:             const thousandSep = currencySettings.thousand_sep || ',';
+167:             const symbol = currencySettings.symbol || '';
+168:             const symbolPosition = currencySettings.symbol_position || 'left';
+169:             
+170:             // Format number
+171:             let formatted = this.numberFormat(price, decimals, decimalSep, thousandSep);
+172:             
+173:             // Add symbol
+174:             switch (symbolPosition) {
+175:                 case 'left':
+176:                     return symbol + formatted;
+177:                 case 'right':
+178:                     return formatted + symbol;
+179:                 case 'left_space':
+180:                     return symbol + ' ' + formatted;
+181:                 case 'right_space':
+182:                     return formatted + ' ' + symbol;
+183:                 default:
+184:                     return symbol + formatted;
+185:             }
+186:         },
+187: 
+188:         /**
+189:          * Number formatting helper
+190:          */
+191:         numberFormat: function(number, decimals, decPoint, thousandsSep) {
+192:             number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+193:             const n = !isFinite(+number) ? 0 : +number;
+194:             const prec = !isFinite(+decimals) ? 0 : Math.abs(decimals);
+195:             const sep = (typeof thousandsSep === 'undefined') ? ',' : thousandsSep;
+196:             const dec = (typeof decPoint === 'undefined') ? '.' : decPoint;
+197:             
+198:             const toFixedFix = function(n, prec) {
+199:                 const k = Math.pow(10, prec);
+200:                 return '' + (Math.round(n * k) / k).toFixed(prec);
+201:             };
+202:             
+203:             const s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+204:             
+205:             if (s[0].length > 3) {
+206:                 s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+207:             }
+208:             
+209:             if ((s[1] || '').length < prec) {
+210:                 s[1] = s[1] || '';
+211:                 s[1] += new Array(prec - s[1].length + 1).join('0');
+212:             }
+213:             
+214:             return s.join(dec);
+215:         }
+216:     };
+217: 
+218:     // Initialize on document ready
+219:     $(document).ready(function() {
+220:         Currify.init();
+221:     });
+222: 
+223: })(jQuery);
+
+================
+File: currify-currency-switcher/includes/class-admin-settings.php
+================
+  1: <?php
+  2: /**
+  3:  * Admin Settings Class
+  4:  * 
+  5:  * Handles the admin settings page, currency management, and cron controls
+  6:  */
+  7: 
+  8: if ( ! defined( 'ABSPATH' ) ) {
+  9:     exit;
+ 10: }
+ 11: 
+ 12: class Currify_Admin_Settings {
+ 13: 
+ 14:     /**
+ 15:      * Instance
+ 16:      */
+ 17:     private static $instance = null;
+ 18: 
+ 19:     /**
+ 20:      * Get instance
+ 21:      */
+ 22:     public static function get_instance() {
+ 23:         if ( null === self::$instance ) {
+ 24:             self::$instance = new self();
+ 25:         }
+ 26:         return self::$instance;
+ 27:     }
+ 28: 
+ 29:     /**
+ 30:      * Constructor
+ 31:      */
+ 32:     private function __construct() {
+ 33:         add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
+ 34:         add_action( 'admin_init', array( $this, 'register_settings' ) );
+ 35:         add_action( 'wp_ajax_currify_update_rates_manually', array( $this, 'update_rates_manually' ) );
+ 36:         add_action( 'wp_ajax_currify_disable_cron', array( $this, 'disable_cron' ) );
+ 37:         add_action( 'wp_ajax_currify_save_currency', array( $this, 'save_currency_ajax' ) );
+ 38:         add_action( 'wp_ajax_currify_delete_currency', array( $this, 'delete_currency_ajax' ) );
+ 39:         add_action( 'currify_update_exchange_rates', array( $this, 'update_exchange_rates' ) );
+ 40:     }
+ 41: 
+ 42:     /**
+ 43:      * Add settings page to WordPress admin
+ 44:      */
+ 45:     public function add_settings_page() {
+ 46:         add_options_page(
+ 47:             __( 'Currify Switcher Settings', 'currify' ),
+ 48:             __( 'Currify Switcher', 'currify' ),
+ 49:             'manage_options',
+ 50:             'currify-settings',
+ 51:             array( $this, 'render_settings_page' )
+ 52:         );
+ 53:     }
+ 54: 
+ 55:     /**
+ 56:      * Register settings
+ 57:      */
+ 58:     public function register_settings() {
+ 59:         register_setting( 'currify_settings_group', 'currify_base_currency', array(
+ 60:             'type'              => 'string',
+ 61:             'sanitize_callback' => 'sanitize_text_field',
+ 62:             'default'           => get_woocommerce_currency(),
+ 63:         ) );
+ 64:         
+ 65:         register_setting( 'currify_settings_group', 'currify_geolocation_enabled', array(
+ 66:             'type'              => 'string',
+ 67:             'sanitize_callback' => 'sanitize_text_field',
+ 68:             'default'           => 'no',
+ 69:         ) );
+ 70:         
+ 71:         register_setting( 'currify_settings_group', 'currify_currencies', array(
+ 72:             'type'              => 'array',
+ 73:             'sanitize_callback' => array( $this, 'sanitize_currencies' ),
+ 74:             'default'           => array(),
+ 75:         ) );
+ 76:     }
+ 77: 
+ 78:     /**
+ 79:      * Sanitize currencies array
+ 80:      */
+ 81:     public function sanitize_currencies( $currencies ) {
+ 82:         if ( ! is_array( $currencies ) ) {
+ 83:             return array();
+ 84:         }
+ 85:         
+ 86:         $sanitized = array();
+ 87:         foreach ( $currencies as $code => $currency ) {
+ 88:             $sanitized[ sanitize_text_field( $code ) ] = array(
+ 89:                 'code'              => sanitize_text_field( $currency['code'] ?? '' ),
+ 90:                 'symbol'            => sanitize_text_field( $currency['symbol'] ?? '' ),
+ 91:                 'flag'              => esc_url_raw( $currency['flag'] ?? '' ),
+ 92:                 'rate_source'       => sanitize_text_field( $currency['rate_source'] ?? 'manual' ),
+ 93:                 'exchange_rate'     => floatval( $currency['exchange_rate'] ?? 1 ),
+ 94:                 'symbol_position'   => sanitize_text_field( $currency['symbol_position'] ?? 'left' ),
+ 95:                 'thousand_sep'      => sanitize_text_field( $currency['thousand_sep'] ?? ',' ),
+ 96:                 'decimal_sep'       => sanitize_text_field( $currency['decimal_sep'] ?? '.' ),
+ 97:                 'decimals'          => intval( $currency['decimals'] ?? 2 ),
+ 98:             );
+ 99:         }
+100:         
+101:         return $sanitized;
+102:     }
+103: 
+104:     /**
+105:      * Render settings page
+106:      */
+107:     public function render_settings_page() {
+108:         if ( ! current_user_can( 'manage_options' ) ) {
+109:             return;
+110:         }
+111:         
+112:         // Handle form submission
+113:         if ( isset( $_POST['currify_save_settings'] ) && check_admin_referer( 'currify_save_settings_action', 'currify_settings_nonce' ) ) {
+114:             update_option( 'currify_base_currency', sanitize_text_field( $_POST['currify_base_currency'] ?? get_woocommerce_currency() ) );
+115:             update_option( 'currify_geolocation_enabled', isset( $_POST['currify_geolocation_enabled'] ) ? 'yes' : 'no' );
+116:             
+117:             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully.', 'currify' ) . '</p></div>';
+118:         }
+119:         
+120:         $base_currency = get_option( 'currify_base_currency', get_woocommerce_currency() );
+121:         $geolocation_enabled = get_option( 'currify_geolocation_enabled', 'no' );
+122:         $currencies = get_option( 'currify_currencies', array() );
+123:         $available_currencies = $this->get_available_currencies();
+124:         ?>
+125:         
+126:         <div class="wrap">
+127:             <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+128:             
+129:             <form method="post" action="">
+130:                 <?php wp_nonce_field( 'currify_save_settings_action', 'currify_settings_nonce' ); ?>
+131:                 
+132:                 <table class="form-table">
+133:                     <tr>
+134:                         <th scope="row">
+135:                             <label for="currify_base_currency"><?php esc_html_e( 'Base Currency', 'currify' ); ?></label>
+136:                         </th>
+137:                         <td>
+138:                             <select name="currify_base_currency" id="currify_base_currency">
+139:                                 <?php foreach ( $available_currencies as $code => $name ) : ?>
+140:                                     <option value="<?php echo esc_attr( $code ); ?>" <?php selected( $base_currency, $code ); ?>>
+141:                                         <?php echo esc_html( $code . ' - ' . $name ); ?>
+142:                                     </option>
+143:                                 <?php endforeach; ?>
+144:                             </select>
+145:                             <p class="description"><?php esc_html_e( 'The primary currency for your store. Defaults to WooCommerce currency setting.', 'currify' ); ?></p>
+146:                         </td>
+147:                     </tr>
+148:                     
+149:                     <tr>
+150:                         <th scope="row">
+151:                             <label for="currify_geolocation_enabled"><?php esc_html_e( 'Enable Geolocation', 'currify' ); ?></label>
+152:                         </th>
+153:                         <td>
+154:                             <input type="checkbox" name="currify_geolocation_enabled" id="currify_geolocation_enabled" value="yes" <?php checked( $geolocation_enabled, 'yes' ); ?>>
+155:                             <p class="description"><?php esc_html_e( 'Automatically detect and set currency based on visitor IP address.', 'currify' ); ?></p>
+156:                         </td>
+157:                     </tr>
+158:                 </table>
+159:                 
+160:                 <?php submit_button( __( 'Save Settings', 'currify' ), 'primary', 'currify_save_settings' ); ?>
+161:             </form>
+162:             
+163:             <hr>
+164:             
+165:             <h2><?php esc_html_e( 'WP-Cron Control', 'currify' ); ?></h2>
+166:             <p><?php esc_html_e( 'Exchange rates are automatically updated daily. Use these controls to manage the update process.', 'currify' ); ?></p>
+167:             
+168:             <p>
+169:                 <button type="button" class="button button-secondary" id="currify-update-rates-btn">
+170:                     <?php esc_html_e( 'Update Rates Now', 'currify' ); ?>
+171:                 </button>
+172:                 <button type="button" class="button button-secondary" id="currify-disable-cron-btn">
+173:                     <?php esc_html_e( 'Disable Auto-Update', 'currify' ); ?>
+174:                 </button>
+175:                 <span id="currify-cron-message"></span>
+176:             </p>
+177:             
+178:             <hr>
+179:             
+180:             <h2><?php esc_html_e( 'Currency Manager', 'currify' ); ?></h2>
+181:             
+182:             <div id="currify-currency-list">
+183:                 <?php if ( ! empty( $currencies ) ) : ?>
+184:                     <table class="wp-list-table widefat fixed striped">
+185:                         <thead>
+186:                             <tr>
+187:                                 <th><?php esc_html_e( 'Flag', 'currify' ); ?></th>
+188:                                 <th><?php esc_html_e( 'Code', 'currify' ); ?></th>
+189:                                 <th><?php esc_html_e( 'Symbol', 'currify' ); ?></th>
+190:                                 <th><?php esc_html_e( 'Rate Source', 'currify' ); ?></th>
+191:                                 <th><?php esc_html_e( 'Exchange Rate', 'currify' ); ?></th>
+192:                                 <th><?php esc_html_e( 'Actions', 'currify' ); ?></th>
+193:                             </tr>
+194:                         </thead>
+195:                         <tbody>
+196:                             <?php foreach ( $currencies as $code => $currency ) : ?>
+197:                                 <tr data-currency-code="<?php echo esc_attr( $code ); ?>">
+198:                                     <td>
+199:                                         <?php if ( ! empty( $currency['flag'] ) ) : ?>
+200:                                             <img src="<?php echo esc_url( $currency['flag'] ); ?>" alt="<?php echo esc_attr( $code ); ?>" style="width: 30px; height: auto;">
+201:                                         <?php endif; ?>
+202:                                     </td>
+203:                                     <td><?php echo esc_html( $currency['code'] ); ?></td>
+204:                                     <td><?php echo esc_html( $currency['symbol'] ); ?></td>
+205:                                     <td><?php echo esc_html( ucfirst( $currency['rate_source'] ) ); ?></td>
+206:                                     <td><?php echo esc_html( number_format( $currency['exchange_rate'], 6 ) ); ?></td>
+207:                                     <td>
+208:                                         <button type="button" class="button button-small currify-edit-currency" data-code="<?php echo esc_attr( $code ); ?>">
+209:                                             <?php esc_html_e( 'Edit', 'currify' ); ?>
+210:                                         </button>
+211:                                         <button type="button" class="button button-small currify-delete-currency" data-code="<?php echo esc_attr( $code ); ?>">
+212:                                             <?php esc_html_e( 'Delete', 'currify' ); ?>
+213:                                         </button>
+214:                                     </td>
+215:                                 </tr>
+216:                             <?php endforeach; ?>
+217:                         </tbody>
+218:                     </table>
+219:                 <?php else : ?>
+220:                     <p><?php esc_html_e( 'No currencies added yet.', 'currify' ); ?></p>
+221:                 <?php endif; ?>
+222:             </div>
+223:             
+224:             <h3><?php esc_html_e( 'Add/Edit Currency', 'currify' ); ?></h3>
+225:             
+226:             <form id="currify-currency-form">
+227:                 <?php wp_nonce_field( 'currify_currency_action', 'currify_currency_nonce' ); ?>
+228:                 <input type="hidden" name="currency_action" id="currency_action" value="add">
+229:                 <input type="hidden" name="original_code" id="original_code" value="">
+230:                 
+231:                 <table class="form-table">
+232:                     <tr>
+233:                         <th scope="row">
+234:                             <label for="currency_code"><?php esc_html_e( 'Currency Code', 'currify' ); ?></label>
+235:                         </th>
+236:                         <td>
+237:                             <input type="text" name="currency_code" id="currency_code" class="regular-text" required>
+238:                             <p class="description"><?php esc_html_e( 'e.g., USD, EUR, SYP', 'currify' ); ?></p>
+239:                         </td>
+240:                     </tr>
+241:                     
+242:                     <tr>
+243:                         <th scope="row">
+244:                             <label for="currency_symbol"><?php esc_html_e( 'Currency Symbol', 'currify' ); ?></label>
+245:                         </th>
+246:                         <td>
+247:                             <input type="text" name="currency_symbol" id="currency_symbol" class="regular-text" required>
+248:                             <p class="description"><?php esc_html_e( 'e.g., $, €, ل.س', 'currify' ); ?></p>
+249:                         </td>
+250:                     </tr>
+251:                     
+252:                     <tr>
+253:                         <th scope="row">
+254:                             <label for="currency_flag"><?php esc_html_e( 'Flag Image', 'currify' ); ?></label>
+255:                         </th>
+256:                         <td>
+257:                             <input type="text" name="currency_flag" id="currency_flag" class="regular-text" readonly>
+258:                             <button type="button" class="button" id="currify-upload-flag-btn"><?php esc_html_e( 'Upload Flag', 'currify' ); ?></button>
+259:                             <div id="currify-flag-preview"></div>
+260:                         </td>
+261:                     </tr>
+262:                     
+263:                     <tr>
+264:                         <th scope="row">
+265:                             <label for="rate_source"><?php esc_html_e( 'Exchange Rate Source', 'currify' ); ?></label>
+266:                         </th>
+267:                         <td>
+268:                             <select name="rate_source" id="rate_source">
+269:                                 <option value="manual"><?php esc_html_e( 'Manual', 'currify' ); ?></option>
+270:                                 <option value="automatic"><?php esc_html_e( 'Automatic', 'currify' ); ?></option>
+271:                             </select>
+272:                         </td>
+273:                     </tr>
+274:                     
+275:                     <tr>
+276:                         <th scope="row">
+277:                             <label for="exchange_rate"><?php esc_html_e( 'Exchange Rate', 'currify' ); ?></label>
+278:                         </th>
+279:                         <td>
+280:                             <input type="number" name="exchange_rate" id="exchange_rate" class="regular-text" step="0.000001" required>
+281:                             <p class="description"><?php esc_html_e( '1 base currency = X this currency', 'currify' ); ?></p>
+282:                         </td>
+283:                     </tr>
+284:                     
+285:                     <tr>
+286:                         <th scope="row">
+287:                             <label><?php esc_html_e( 'Price Formatting', 'currify' ); ?></label>
+288:                         </th>
+289:                         <td>
+290:                             <p>
+291:                                 <label for="symbol_position"><?php esc_html_e( 'Symbol Position:', 'currify' ); ?></label>
+292:                                 <select name="symbol_position" id="symbol_position">
+293:                                     <option value="left"><?php esc_html_e( 'Left ($99.99)', 'currify' ); ?></option>
+294:                                     <option value="right"><?php esc_html_e( 'Right (99.99$)', 'currify' ); ?></option>
+295:                                     <option value="left_space"><?php esc_html_e( 'Left with space ($ 99.99)', 'currify' ); ?></option>
+296:                                     <option value="right_space"><?php esc_html_e( 'Right with space (99.99 $)', 'currify' ); ?></option>
+297:                                 </select>
+298:                             </p>
+299:                             <p>
+300:                                 <label for="thousand_sep"><?php esc_html_e( 'Thousand Separator:', 'currify' ); ?></label>
+301:                                 <input type="text" name="thousand_sep" id="thousand_sep" value="," maxlength="1" style="width: 50px;">
+302:                             </p>
+303:                             <p>
+304:                                 <label for="decimal_sep"><?php esc_html_e( 'Decimal Separator:', 'currify' ); ?></label>
+305:                                 <input type="text" name="decimal_sep" id="decimal_sep" value="." maxlength="1" style="width: 50px;">
+306:                             </p>
+307:                             <p>
+308:                                 <label for="decimals"><?php esc_html_e( 'Number of Decimals:', 'currify' ); ?></label>
+309:                                 <input type="number" name="decimals" id="decimals" value="2" min="0" max="6" style="width: 80px;">
+310:                             </p>
+311:                         </td>
+312:                     </tr>
+313:                 </table>
+314:                 
+315:                 <p>
+316:                     <button type="submit" class="button button-primary" id="currify-save-currency-btn">
+317:                         <?php esc_html_e( 'Save Currency', 'currify' ); ?>
+318:                     </button>
+319:                     <button type="button" class="button" id="currify-cancel-edit-btn" style="display: none;">
+320:                         <?php esc_html_e( 'Cancel', 'currify' ); ?>
+321:                     </button>
+322:                 </p>
+323:             </form>
+324:         </div>
+325:         
+326:         <script type="text/javascript">
+327:         jQuery(document).ready(function($) {
+328:             // Media uploader for flag
+329:             var flagUploader;
+330:             $('#currify-upload-flag-btn').on('click', function(e) {
+331:                 e.preventDefault();
+332:                 
+333:                 if (flagUploader) {
+334:                     flagUploader.open();
+335:                     return;
+336:                 }
+337:                 
+338:                 flagUploader = wp.media({
+339:                     title: '<?php esc_html_e( 'Select Flag Image', 'currify' ); ?>',
+340:                     button: {
+341:                         text: '<?php esc_html_e( 'Use this image', 'currify' ); ?>'
+342:                     },
+343:                     multiple: false
+344:                 });
+345:                 
+346:                 flagUploader.on('select', function() {
+347:                     var attachment = flagUploader.state().get('selection').first().toJSON();
+348:                     $('#currency_flag').val(attachment.url);
+349:                     $('#currify-flag-preview').html('<img src="' + attachment.url + '" style="max-width: 100px; margin-top: 10px;">');
+350:                 });
+351:                 
+352:                 flagUploader.open();
+353:             });
+354:             
+355:             // Save currency
+356:             $('#currify-currency-form').on('submit', function(e) {
+357:                 e.preventDefault();
+358:                 
+359:                 var formData = {
+360:                     action: 'currify_save_currency',
+361:                     nonce: $('#currify_currency_nonce').val(),
+362:                     currency_action: $('#currency_action').val(),
+363:                     original_code: $('#original_code').val(),
+364:                     code: $('#currency_code').val().toUpperCase(),
+365:                     symbol: $('#currency_symbol').val(),
+366:                     flag: $('#currency_flag').val(),
+367:                     rate_source: $('#rate_source').val(),
+368:                     exchange_rate: $('#exchange_rate').val(),
+369:                     symbol_position: $('#symbol_position').val(),
+370:                     thousand_sep: $('#thousand_sep').val(),
+371:                     decimal_sep: $('#decimal_sep').val(),
+372:                     decimals: $('#decimals').val()
+373:                 };
+374:                 
+375:                 $.post(ajaxurl, formData, function(response) {
+376:                     if (response.success) {
+377:                         alert(response.data.message);
+378:                         location.reload();
+379:                     } else {
+380:                         alert(response.data.message);
+381:                     }
+382:                 });
+383:             });
+384:             
+385:             // Edit currency
+386:             $(document).on('click', '.currify-edit-currency', function() {
+387:                 var code = $(this).data('code');
+388:                 
+389:                 $.post(ajaxurl, {
+390:                     action: 'currify_get_currency',
+391:                     code: code,
+392:                     nonce: '<?php echo wp_create_nonce( 'currify_admin_nonce' ); ?>'
+393:                 }, function(response) {
+394:                     if (response.success) {
+395:                         var currency = response.data.currency;
+396:                         $('#currency_action').val('edit');
+397:                         $('#original_code').val(code);
+398:                         $('#currency_code').val(currency.code);
+399:                         $('#currency_symbol').val(currency.symbol);
+400:                         $('#currency_flag').val(currency.flag);
+401:                         $('#rate_source').val(currency.rate_source);
+402:                         $('#exchange_rate').val(currency.exchange_rate);
+403:                         $('#symbol_position').val(currency.symbol_position);
+404:                         $('#thousand_sep').val(currency.thousand_sep);
+405:                         $('#decimal_sep').val(currency.decimal_sep);
+406:                         $('#decimals').val(currency.decimals);
+407:                         
+408:                         if (currency.flag) {
+409:                             $('#currify-flag-preview').html('<img src="' + currency.flag + '" style="max-width: 100px; margin-top: 10px;">');
+410:                         }
+411:                         
+412:                         $('#currify-cancel-edit-btn').show();
+413:                         $('html, body').animate({scrollTop: $('#currify-currency-form').offset().top}, 500);
+414:                     }
+415:                 });
+416:             });
+417:             
+418:             // Delete currency
+419:             $(document).on('click', '.currify-delete-currency', function() {
+420:                 if (!confirm('<?php esc_html_e( 'Are you sure you want to delete this currency?', 'currify' ); ?>')) {
+421:                     return;
+422:                 }
+423:                 
+424:                 var code = $(this).data('code');
+425:                 
+426:                 $.post(ajaxurl, {
+427:                     action: 'currify_delete_currency',
+428:                     nonce: '<?php echo wp_create_nonce( 'currify_admin_nonce' ); ?>',
+429:                     code: code
+430:                 }, function(response) {
+431:                     if (response.success) {
+432:                         alert(response.data.message);
+433:                         location.reload();
+434:                     } else {
+435:                         alert(response.data.message);
+436:                     }
+437:                 });
+438:             });
+439:             
+440:             // Cancel edit
+441:             $('#currify-cancel-edit-btn').on('click', function() {
+442:                 $('#currify-currency-form')[0].reset();
+443:                 $('#currency_action').val('add');
+444:                 $('#original_code').val('');
+445:                 $('#currify-flag-preview').html('');
+446:                 $(this).hide();
+447:             });
+448:             
+449:             // Update rates manually
+450:             $('#currify-update-rates-btn').on('click', function() {
+451:                 var btn = $(this);
+452:                 btn.prop('disabled', true).text('<?php esc_html_e( 'Updating...', 'currify' ); ?>');
+453:                 
+454:                 $.post(ajaxurl, {
+455:                     action: 'currify_update_rates_manually',
+456:                     nonce: '<?php echo wp_create_nonce( 'currify_admin_nonce' ); ?>'
+457:                 }, function(response) {
+458:                     btn.prop('disabled', false).text('<?php esc_html_e( 'Update Rates Now', 'currify' ); ?>');
+459:                     
+460:                     if (response.success) {
+461:                         $('#currify-cron-message').html('<span style="color: green;">' + response.data.message + '</span>');
+462:                         setTimeout(function() {
+463:                             location.reload();
+464:                         }, 1500);
+465:                     } else {
+466:                         $('#currify-cron-message').html('<span style="color: red;">' + response.data.message + '</span>');
+467:                     }
+468:                 });
+469:             });
+470:             
+471:             // Disable cron
+472:             $('#currify-disable-cron-btn').on('click', function() {
+473:                 if (!confirm('<?php esc_html_e( 'Are you sure you want to disable automatic rate updates?', 'currify' ); ?>')) {
+474:                     return;
+475:                 }
+476:                 
+477:                 $.post(ajaxurl, {
+478:                     action: 'currify_disable_cron',
+479:                     nonce: '<?php echo wp_create_nonce( 'currify_admin_nonce' ); ?>'
+480:                 }, function(response) {
+481:                     if (response.success) {
+482:                         alert(response.data.message);
+483:                     }
+484:                 });
+485:             });
+486:         });
+487:         </script>
+488:         
+489:         <?php
+490:     }
+491: 
+492:     /**
+493:      * Get available currencies
+494:      */
+495:     private function get_available_currencies() {
+496:         return array(
+497:             'USD' => 'US Dollar',
+498:             'EUR' => 'Euro',
+499:             'GBP' => 'British Pound',
+500:             'JPY' => 'Japanese Yen',
+501:             'AUD' => 'Australian Dollar',
+502:             'CAD' => 'Canadian Dollar',
+503:             'CHF' => 'Swiss Franc',
+504:             'CNY' => 'Chinese Yuan',
+505:             'SYP' => 'Syrian Pound',
+506:             'AED' => 'UAE Dirham',
+507:             'SAR' => 'Saudi Riyal',
+508:             'EGP' => 'Egyptian Pound',
+509:             'TRY' => 'Turkish Lira',
+510:             'INR' => 'Indian Rupee',
+511:             'BRL' => 'Brazilian Real',
+512:             'MXN' => 'Mexican Peso',
+513:             'RUB' => 'Russian Ruble',
+514:             'KRW' => 'South Korean Won',
+515:             'SEK' => 'Swedish Krona',
+516:             'NOK' => 'Norwegian Krone',
+517:             'DKK' => 'Danish Krone',
+518:             'PLN' => 'Polish Zloty',
+519:             'THB' => 'Thai Baht',
+520:             'IDR' => 'Indonesian Rupiah',
+521:             'HUF' => 'Hungarian Forint',
+522:             'CZK' => 'Czech Koruna',
+523:             'ILS' => 'Israeli Shekel',
+524:             'CLP' => 'Chilean Peso',
+525:             'PHP' => 'Philippine Peso',
+526:             'ZAR' => 'South African Rand',
+527:         );
+528:     }
+529: 
+530:     /**
+531:      * Save currency via AJAX
+532:      */
+533:     public function save_currency_ajax() {
+534:         check_ajax_referer( 'currify_currency_action', 'nonce' );
+535:         
+536:         if ( ! current_user_can( 'manage_options' ) ) {
+537:             wp_send_json_error( array( 'message' => __( 'Permission denied.', 'currify' ) ) );
+538:         }
+539:         
+540:         $action = sanitize_text_field( $_POST['currency_action'] ?? 'add' );
+541:         $original_code = sanitize_text_field( $_POST['original_code'] ?? '' );
+542:         $code = strtoupper( sanitize_text_field( $_POST['code'] ?? '' ) );
+543:         
+544:         if ( empty( $code ) ) {
+545:             wp_send_json_error( array( 'message' => __( 'Currency code is required.', 'currify' ) ) );
+546:         }
+547:         
+548:         $currencies = get_option( 'currify_currencies', array() );
+549:         
+550:         // If editing and code changed, remove old entry
+551:         if ( 'edit' === $action && $original_code !== $code && isset( $currencies[ $original_code ] ) ) {
+552:             unset( $currencies[ $original_code ] );
+553:         }
+554:         
+555:         $currencies[ $code ] = array(
+556:             'code'             => $code,
+557:             'symbol'           => sanitize_text_field( $_POST['symbol'] ?? '' ),
+558:             'flag'             => esc_url_raw( $_POST['flag'] ?? '' ),
+559:             'rate_source'      => sanitize_text_field( $_POST['rate_source'] ?? 'manual' ),
+560:             'exchange_rate'    => floatval( $_POST['exchange_rate'] ?? 1 ),
+561:             'symbol_position'  => sanitize_text_field( $_POST['symbol_position'] ?? 'left' ),
+562:             'thousand_sep'     => sanitize_text_field( $_POST['thousand_sep'] ?? ',' ),
+563:             'decimal_sep'      => sanitize_text_field( $_POST['decimal_sep'] ?? '.' ),
+564:             'decimals'         => intval( $_POST['decimals'] ?? 2 ),
+565:         );
+566:         
+567:         update_option( 'currify_currencies', $currencies );
+568:         
+569:         wp_send_json_success( array( 'message' => __( 'Currency saved successfully.', 'currify' ) ) );
+570:     }
+571: 
+572:     /**
+573:      * Delete currency via AJAX
+574:      */
+575:     public function delete_currency_ajax() {
+576:         check_ajax_referer( 'currify_admin_nonce', 'nonce' );
+577:         
+578:         if ( ! current_user_can( 'manage_options' ) ) {
+579:             wp_send_json_error( array( 'message' => __( 'Permission denied.', 'currify' ) ) );
+580:         }
+581:         
+582:         $code = sanitize_text_field( $_POST['code'] ?? '' );
+583:         $currencies = get_option( 'currify_currencies', array() );
+584:         
+585:         if ( isset( $currencies[ $code ] ) ) {
+586:             unset( $currencies[ $code ] );
+587:             update_option( 'currify_currencies', $currencies );
+588:             wp_send_json_success( array( 'message' => __( 'Currency deleted successfully.', 'currify' ) ) );
+589:         }
+590:         
+591:         wp_send_json_error( array( 'message' => __( 'Currency not found.', 'currify' ) ) );
+592:     }
+593: 
+594:     /**
+595:      * Update rates manually via AJAX
+596:      */
+597:     public function update_rates_manually() {
+598:         check_ajax_referer( 'currify_admin_nonce', 'nonce' );
+599:         
+600:         if ( ! current_user_can( 'manage_options' ) ) {
+601:             wp_send_json_error( array( 'message' => __( 'Permission denied.', 'currify' ) ) );
+602:         }
+603:         
+604:         $result = $this->update_exchange_rates();
+605:         
+606:         if ( $result ) {
+607:             wp_send_json_success( array( 'message' => __( 'Exchange rates updated successfully.', 'currify' ) ) );
+608:         } else {
+609:             wp_send_json_error( array( 'message' => __( 'Failed to update exchange rates. Check error log.', 'currify' ) ) );
+610:         }
+611:     }
+612: 
+613:     /**
+614:      * Disable cron via AJAX
+615:      */
+616:     public function disable_cron() {
+617:         check_ajax_referer( 'currify_admin_nonce', 'nonce' );
+618:         
+619:         if ( ! current_user_can( 'manage_options' ) ) {
+620:             wp_send_json_error( array( 'message' => __( 'Permission denied.', 'currify' ) ) );
+621:         }
+622:         
+623:         wp_clear_scheduled_hook( 'currify_update_exchange_rates' );
+624:         wp_send_json_success( array( 'message' => __( 'Automatic updates disabled.', 'currify' ) ) );
+625:     }
+626: 
+627:     /**
+628:      * Update exchange rates from ECB API
+629:      */
+630:     public function update_exchange_rates() {
+631:         $currencies = get_option( 'currify_currencies', array() );
+632:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+633:         
+634:         // Check cache first
+635:         $cached_rates = get_transient( 'currify_ecb_rates' );
+636:         
+637:         if ( false === $cached_rates ) {
+638:             // Fetch from ECB
+639:             $response = wp_remote_get( 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml' );
+640:             
+641:             if ( is_wp_error( $response ) ) {
+642:                 error_log( 'Currify: Failed to fetch ECB rates - ' . $response->get_error_message() );
+643:                 return false;
+644:             }
+645:             
+646:             $body = wp_remote_retrieve_body( $response );
+647:             
+648:             if ( empty( $body ) ) {
+649:                 error_log( 'Currify: Empty response from ECB' );
+650:                 return false;
+651:             }
+652:             
+653:             // Parse XML
+654:             $xml = simplexml_load_string( $body );
+655:             
+656:             if ( false === $xml ) {
+657:                 error_log( 'Currify: Failed to parse ECB XML' );
+658:                 return false;
+659:             }
+660:             
+661:             $rates = array( 'EUR' => 1.0 ); // EUR is the base
+662:             
+663:             foreach ( $xml->Cube->Cube->Cube as $rate ) {
+664:                 $currency = (string) $rate['currency'];
+665:                 $value = (float) $rate['rate'];
+666:                 $rates[ $currency ] = $value;
+667:             }
+668:             
+669:             // Cache for 24 hours
+670:             set_transient( 'currify_ecb_rates', $rates, DAY_IN_SECONDS );
+671:             $cached_rates = $rates;
+672:         }
+673:         
+674:         // Convert rates to base currency
+675:         $base_rate = $cached_rates[ $base_currency ] ?? 1;
+676:         
+677:         foreach ( $currencies as $code => &$currency ) {
+678:             if ( 'automatic' === $currency['rate_source'] ) {
+679:                 if ( isset( $cached_rates[ $code ] ) ) {
+680:                     // Convert: (target_rate / base_rate)
+681:                     $currency['exchange_rate'] = $cached_rates[ $code ] / $base_rate;
+682:                 } else {
+683:                     error_log( "Currify: No rate found for {$code}, keeping manual rate" );
+684:                 }
+685:             }
+686:         }
+687:         
+688:         update_option( 'currify_currencies', $currencies );
+689:         return true;
+690:     }
+691: }
+
+================
+File: currify-currency-switcher/includes/class-frontend-logic.php
+================
+  1: <?php
+  2: /**
+  3:  * Frontend Logic Class
+  4:  * 
+  5:  * Handles AJAX price conversion, geolocation, widget, and shortcode
+  6:  */
+  7: 
+  8: if ( ! defined( 'ABSPATH' ) ) {
+  9:     exit;
+ 10: }
+ 11: 
+ 12: class Currify_Frontend_Logic {
+ 13: 
+ 14:     /**
+ 15:      * Instance
+ 16:      */
+ 17:     private static $instance = null;
+ 18: 
+ 19:     /**
+ 20:      * Get instance
+ 21:      */
+ 22:     public static function get_instance() {
+ 23:         if ( null === self::$instance ) {
+ 24:             self::$instance = new self();
+ 25:         }
+ 26:         return self::$instance;
+ 27:     }
+ 28: 
+ 29:     /**
+ 30:      * Constructor
+ 31:      */
+ 32:     private function __construct() {
+ 33:         // AJAX endpoints
+ 34:         add_action( 'wp_ajax_currify_convert_price', array( $this, 'ajax_convert_price' ) );
+ 35:         add_action( 'wp_ajax_nopriv_currify_convert_price', array( $this, 'ajax_convert_price' ) );
+ 36:         add_action( 'wp_ajax_currify_switch_currency', array( $this, 'ajax_switch_currency' ) );
+ 37:         add_action( 'wp_ajax_nopriv_currify_switch_currency', array( $this, 'ajax_switch_currency' ) );
+ 38:         add_action( 'wp_ajax_currify_get_all_prices', array( $this, 'ajax_get_all_prices' ) );
+ 39:         add_action( 'wp_ajax_nopriv_currify_get_all_prices', array( $this, 'ajax_get_all_prices' ) );
+ 40:         
+ 41:         // Shortcode
+ 42:         add_shortcode( 'currify_currency_switcher', array( $this, 'render_switcher_shortcode' ) );
+ 43:         
+ 44:         // Widget
+ 45:         add_action( 'widgets_init', array( $this, 'register_widget' ) );
+ 46:         
+ 47:         // Geolocation
+ 48:         add_action( 'template_redirect', array( $this, 'handle_geolocation' ), 1 );
+ 49:         
+ 50:         // Cart and checkout modifications
+ 51:         add_filter( 'woocommerce_cart_item_price', array( $this, 'filter_cart_item_price' ), 10, 3 );
+ 52:         add_filter( 'woocommerce_cart_item_subtotal', array( $this, 'filter_cart_item_subtotal' ), 10, 3 );
+ 53:     }
+ 54: 
+ 55:     /**
+ 56:      * Handle geolocation
+ 57:      */
+ 58:     public function handle_geolocation() {
+ 59:         // Only if geolocation is enabled and no currency is selected
+ 60:         if ( 'yes' !== get_option( 'currify_geolocation_enabled', 'no' ) ) {
+ 61:             return;
+ 62:         }
+ 63:         
+ 64:         if ( isset( $_SESSION['currify_selected_currency'] ) ) {
+ 65:             return;
+ 66:         }
+ 67:         
+ 68:         $detected_currency = $this->detect_currency_by_ip();
+ 69:         
+ 70:         if ( $detected_currency ) {
+ 71:             $_SESSION['currify_selected_currency'] = $detected_currency;
+ 72:             setcookie( 'currify_selected_currency', $detected_currency, time() + YEAR_IN_SECONDS, '/' );
+ 73:         }
+ 74:     }
+ 75: 
+ 76:     /**
+ 77:      * Detect currency by IP
+ 78:      */
+ 79:     private function detect_currency_by_ip() {
+ 80:         $cached_currency = get_transient( 'currify_geo_' . $this->get_client_ip() );
+ 81:         
+ 82:         if ( false !== $cached_currency ) {
+ 83:             return $cached_currency;
+ 84:         }
+ 85:         
+ 86:         $ip = $this->get_client_ip();
+ 87:         
+ 88:         // Use ipapi.co (free tier allows 1000 requests/day)
+ 89:         $response = wp_remote_get( "https://ipapi.co/{$ip}/json/" );
+ 90:         
+ 91:         if ( is_wp_error( $response ) ) {
+ 92:             return false;
+ 93:         }
+ 94:         
+ 95:         $body = wp_remote_retrieve_body( $response );
+ 96:         $data = json_decode( $body, true );
+ 97:         
+ 98:         if ( empty( $data['currency'] ) ) {
+ 99:             return false;
+100:         }
+101:         
+102:         $detected_currency = $data['currency'];
+103:         
+104:         // Check if this currency is available in our settings
+105:         $currencies = get_option( 'currify_currencies', array() );
+106:         
+107:         if ( isset( $currencies[ $detected_currency ] ) ) {
+108:             // Cache for 24 hours
+109:             set_transient( 'currify_geo_' . $ip, $detected_currency, DAY_IN_SECONDS );
+110:             return $detected_currency;
+111:         }
+112:         
+113:         return false;
+114:     }
+115: 
+116:     /**
+117:      * Get client IP
+118:      */
+119:     private function get_client_ip() {
+120:         $ip = '';
+121:         
+122:         if ( isset( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+123:             $ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CLIENT_IP'] ) );
+124:         } elseif ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+125:             $ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
+126:         } elseif ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
+127:             $ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+128:         }
+129:         
+130:         return $ip;
+131:     }
+132: 
+133:     /**
+134:      * AJAX: Get all prices for page (batch conversion)
+135:      */
+136:     public function ajax_get_all_prices() {
+137:         check_ajax_referer( 'currify_nonce', 'nonce' );
+138:         
+139:         $prices = isset( $_POST['prices'] ) ? array_map( 'floatval', $_POST['prices'] ) : array();
+140:         $currency = sanitize_text_field( $_POST['currency'] ?? '' );
+141:         
+142:         if ( empty( $currency ) || empty( $prices ) ) {
+143:             wp_send_json_error( array( 'message' => 'Invalid data' ) );
+144:         }
+145:         
+146:         $converted = array();
+147:         
+148:         foreach ( $prices as $index => $price ) {
+149:             $converted[ $index ] = $this->convert_price( $price, $currency );
+150:         }
+151:         
+152:         wp_send_json_success( array(
+153:             'prices' => $converted,
+154:             'currency' => $currency,
+155:         ) );
+156:     }
+157: 
+158:     /**
+159:      * AJAX: Convert single price
+160:      */
+161:     public function ajax_convert_price() {
+162:         check_ajax_referer( 'currify_nonce', 'nonce' );
+163:         
+164:         $price = floatval( $_POST['price'] ?? 0 );
+165:         $currency = sanitize_text_field( $_POST['currency'] ?? '' );
+166:         
+167:         if ( empty( $currency ) || $price <= 0 ) {
+168:             wp_send_json_error( array( 'message' => 'Invalid price or currency' ) );
+169:         }
+170:         
+171:         $converted_price = $this->convert_price( $price, $currency );
+172:         $formatted_price = $this->format_price( $converted_price, $currency );
+173:         
+174:         wp_send_json_success( array(
+175:             'price'           => $converted_price,
+176:             'formatted_price' => $formatted_price,
+177:         ) );
+178:     }
+179: 
+180:     /**
+181:      * AJAX: Switch currency
+182:      */
+183:     public function ajax_switch_currency() {
+184:         check_ajax_referer( 'currify_nonce', 'nonce' );
+185:         
+186:         $currency = sanitize_text_field( $_POST['currency'] ?? '' );
+187:         
+188:         if ( empty( $currency ) ) {
+189:             wp_send_json_error( array( 'message' => 'Invalid currency' ) );
+190:         }
+191:         
+192:         $_SESSION['currify_selected_currency'] = $currency;
+193:         setcookie( 'currify_selected_currency', $currency, time() + YEAR_IN_SECONDS, '/' );
+194:         
+195:         wp_send_json_success( array(
+196:             'currency' => $currency,
+197:             'message'  => __( 'Currency switched successfully', 'currify' ),
+198:         ) );
+199:     }
+200: 
+201:     /**
+202:      * Convert price
+203:      */
+204:     public function convert_price( $price, $target_currency ) {
+205:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+206:         
+207:         // If same as base, no conversion needed
+208:         if ( $target_currency === $base_currency ) {
+209:             return $price;
+210:         }
+211:         
+212:         $currencies = get_option( 'currify_currencies', array() );
+213:         
+214:         if ( ! isset( $currencies[ $target_currency ] ) ) {
+215:             return $price;
+216:         }
+217:         
+218:         $exchange_rate = $currencies[ $target_currency ]['exchange_rate'];
+219:         
+220:         return $price * $exchange_rate;
+221:     }
+222: 
+223:     /**
+224:      * Format price
+225:      */
+226:     public function format_price( $price, $currency ) {
+227:         $currencies = get_option( 'currify_currencies', array() );
+228:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+229:         
+230:         // Use base currency formatting if target currency not found
+231:         if ( ! isset( $currencies[ $currency ] ) ) {
+232:             $currency = $base_currency;
+233:         }
+234:         
+235:         if ( ! isset( $currencies[ $currency ] ) ) {
+236:             return wc_price( $price );
+237:         }
+238:         
+239:         $settings = $currencies[ $currency ];
+240:         
+241:         $formatted = number_format(
+242:             $price,
+243:             $settings['decimals'],
+244:             $settings['decimal_sep'],
+245:             $settings['thousand_sep']
+246:         );
+247:         
+248:         $symbol = $settings['symbol'];
+249:         
+250:         switch ( $settings['symbol_position'] ) {
+251:             case 'left':
+252:                 return $symbol . $formatted;
+253:             case 'right':
+254:                 return $formatted . $symbol;
+255:             case 'left_space':
+256:                 return $symbol . ' ' . $formatted;
+257:             case 'right_space':
+258:                 return $formatted . ' ' . $symbol;
+259:             default:
+260:                 return $symbol . $formatted;
+261:         }
+262:     }
+263: 
+264:     /**
+265:      * Render currency switcher shortcode
+266:      */
+267:     public function render_switcher_shortcode( $atts ) {
+268:         return $this->render_switcher();
+269:     }
+270: 
+271:     /**
+272:      * Render switcher HTML
+273:      */
+274:     public function render_switcher() {
+275:         $current_currency = $this->get_current_currency();
+276:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+277:         $currencies = get_option( 'currify_currencies', array() );
+278:         
+279:         // Include base currency in the list
+280:         $all_currencies = array(
+281:             $base_currency => array(
+282:                 'code'   => $base_currency,
+283:                 'symbol' => get_woocommerce_currency_symbol( $base_currency ),
+284:                 'flag'   => '',
+285:             ),
+286:         );
+287:         
+288:         $all_currencies = array_merge( $all_currencies, $currencies );
+289:         
+290:         ob_start();
+291:         ?>
+292:         <div class="currify-switcher-wrapper">
+293:             <select id="currify-currency-selector" class="currify-currency-selector">
+294:                 <?php foreach ( $all_currencies as $code => $currency ) : ?>
+295:                     <option value="<?php echo esc_attr( $code ); ?>" <?php selected( $current_currency, $code ); ?>>
+296:                         <?php echo esc_html( $code ); ?>
+297:                     </option>
+298:                 <?php endforeach; ?>
+299:             </select>
+300:         </div>
+301:         <?php
+302:         return ob_get_clean();
+303:     }
+304: 
+305:     /**
+306:      * Get current currency
+307:      */
+308:     private function get_current_currency() {
+309:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+310:         
+311:         if ( isset( $_SESSION['currify_selected_currency'] ) ) {
+312:             return sanitize_text_field( $_SESSION['currify_selected_currency'] );
+313:         }
+314:         
+315:         if ( isset( $_COOKIE['currify_selected_currency'] ) ) {
+316:             return sanitize_text_field( $_COOKIE['currify_selected_currency'] );
+317:         }
+318:         
+319:         return $base_currency;
+320:     }
+321: 
+322:     /**
+323:      * Register widget
+324:      */
+325:     public function register_widget() {
+326:         register_widget( 'Currify_Currency_Widget' );
+327:     }
+328: 
+329:     /**
+330:      * Filter cart item price
+331:      */
+332:     public function filter_cart_item_price( $price, $cart_item, $cart_item_key ) {
+333:         // This is handled by JavaScript for cache compatibility
+334:         return $price;
+335:     }
+336: 
+337:     /**
+338:      * Filter cart item subtotal
+339:      */
+340:     public function filter_cart_item_subtotal( $subtotal, $cart_item, $cart_item_key ) {
+341:         // This is handled by JavaScript for cache compatibility
+342:         return $subtotal;
+343:     }
+344: }
+345: 
+346: /**
+347:  * Currency Switcher Widget
+348:  */
+349: class Currify_Currency_Widget extends WP_Widget {
+350: 
+351:     /**
+352:      * Constructor
+353:      */
+354:     public function __construct() {
+355:         parent::__construct(
+356:             'currify_currency_widget',
+357:             __( 'Currify Currency Switcher', 'currify' ),
+358:             array( 'description' => __( 'Display currency switcher dropdown', 'currify' ) )
+359:         );
+360:     }
+361: 
+362:     /**
+363:      * Widget output
+364:      */
+365:     public function widget( $args, $instance ) {
+366:         echo $args['before_widget'];
+367:         
+368:         if ( ! empty( $instance['title'] ) ) {
+369:             echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
+370:         }
+371:         
+372:         $frontend = Currify_Frontend_Logic::get_instance();
+373:         echo $frontend->render_switcher();
+374:         
+375:         echo $args['after_widget'];
+376:     }
+377: 
+378:     /**
+379:      * Widget form
+380:      */
+381:     public function form( $instance ) {
+382:         $title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'Currency', 'currify' );
+383:         ?>
+384:         <p>
+385:             <label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
+386:                 <?php esc_html_e( 'Title:', 'currify' ); ?>
+387:             </label>
+388:             <input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" 
+389:                    name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" 
+390:                    type="text" value="<?php echo esc_attr( $title ); ?>">
+391:         </p>
+392:         <?php
+393:     }
+394: 
+395:     /**
+396:      * Update widget
+397:      */
+398:     public function update( $new_instance, $old_instance ) {
+399:         $instance = array();
+400:         $instance['title'] = ( ! empty( $new_instance['title'] ) ) ? sanitize_text_field( $new_instance['title'] ) : '';
+401:         return $instance;
+402:     }
+403: }
+
+================
+File: currify-currency-switcher/includes/class-hpos-compatibility.php
+================
+  1: <?php
+  2: /**
+  3:  * HPOS Compatibility Helper Class
+  4:  * 
+  5:  * Provides utility methods for HPOS compatibility
+  6:  */
+  7: 
+  8: if ( ! defined( 'ABSPATH' ) ) {
+  9:     exit;
+ 10: }
+ 11: 
+ 12: class Currify_HPOS_Compatibility {
+ 13: 
+ 14:     /**
+ 15:      * Check if HPOS is enabled
+ 16:      *
+ 17:      * @return bool
+ 18:      */
+ 19:     public static function is_hpos_enabled() {
+ 20:         if ( class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) ) {
+ 21:             return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+ 22:         }
+ 23:         return false;
+ 24:     }
+ 25: 
+ 26:     /**
+ 27:      * Get order screen ID
+ 28:      *
+ 29:      * @return string|array
+ 30:      */
+ 31:     public static function get_order_screen_id() {
+ 32:         if ( self::is_hpos_enabled() ) {
+ 33:             return wc_get_page_screen_id( 'shop-order' );
+ 34:         }
+ 35:         return 'shop_order';
+ 36:     }
+ 37: 
+ 38:     /**
+ 39:      * Get order object from global context
+ 40:      *
+ 41:      * @return WC_Order|null
+ 42:      */
+ 43:     public static function get_current_order() {
+ 44:         global $post, $theorder;
+ 45: 
+ 46:         if ( $theorder instanceof WC_Order ) {
+ 47:             return $theorder;
+ 48:         }
+ 49: 
+ 50:         if ( isset( $_GET['id'] ) ) {
+ 51:             return wc_get_order( absint( $_GET['id'] ) );
+ 52:         }
+ 53: 
+ 54:         if ( $post instanceof WP_Post ) {
+ 55:             return wc_get_order( $post->ID );
+ 56:         }
+ 57: 
+ 58:         return null;
+ 59:     }
+ 60: 
+ 61:     /**
+ 62:      * Get order ID from request
+ 63:      *
+ 64:      * @return int
+ 65:      */
+ 66:     public static function get_order_id_from_request() {
+ 67:         // For HPOS
+ 68:         if ( isset( $_GET['id'] ) ) {
+ 69:             return absint( $_GET['id'] );
+ 70:         }
+ 71:         
+ 72:         // For traditional posts
+ 73:         if ( isset( $_GET['post'] ) ) {
+ 74:             return absint( $_GET['post'] );
+ 75:         }
+ 76:         
+ 77:         global $post;
+ 78:         if ( $post && $post->ID ) {
+ 79:             return absint( $post->ID );
+ 80:         }
+ 81:         
+ 82:         return 0;
+ 83:     }
+ 84: 
+ 85:     /**
+ 86:      * Get orders by meta query (HPOS compatible)
+ 87:      *
+ 88:      * @param array $args Query arguments
+ 89:      * @return array Array of order IDs
+ 90:      */
+ 91:     public static function get_orders_by_meta( $args ) {
+ 92:         if ( self::is_hpos_enabled() ) {
+ 93:             // Use HPOS method
+ 94:             return wc_get_orders( $args );
+ 95:         } else {
+ 96:             // Use traditional post meta query
+ 97:             $defaults = array(
+ 98:                 'post_type'      => 'shop_order',
+ 99:                 'post_status'    => array_keys( wc_get_order_statuses() ),
+100:                 'posts_per_page' => -1,
+101:                 'fields'         => 'ids',
+102:             );
+103:             
+104:             $args = wp_parse_args( $args, $defaults );
+105:             
+106:             $query = new WP_Query( $args );
+107:             return $query->posts;
+108:         }
+109:     }
+110: 
+111:     /**
+112:      * Save order meta data (HPOS compatible)
+113:      *
+114:      * @param int $order_id Order ID
+115:      * @param string $meta_key Meta key
+116:      * @param mixed $meta_value Meta value
+117:      * @return bool
+118:      */
+119:     public static function update_order_meta( $order_id, $meta_key, $meta_value ) {
+120:         $order = wc_get_order( $order_id );
+121:         
+122:         if ( ! $order ) {
+123:             return false;
+124:         }
+125:         
+126:         $order->update_meta_data( $meta_key, $meta_value );
+127:         $order->save();
+128:         
+129:         return true;
+130:     }
+131: 
+132:     /**
+133:      * Get order meta data (HPOS compatible)
+134:      *
+135:      * @param int $order_id Order ID
+136:      * @param string $meta_key Meta key
+137:      * @param bool $single Return single value
+138:      * @return mixed
+139:      */
+140:     public static function get_order_meta( $order_id, $meta_key, $single = true ) {
+141:         $order = wc_get_order( $order_id );
+142:         
+143:         if ( ! $order ) {
+144:             return $single ? '' : array();
+145:         }
+146:         
+147:         return $order->get_meta( $meta_key, $single );
+148:     }
+149: 
+150:     /**
+151:      * Delete order meta data (HPOS compatible)
+152:      *
+153:      * @param int $order_id Order ID
+154:      * @param string $meta_key Meta key
+155:      * @return bool
+156:      */
+157:     public static function delete_order_meta( $order_id, $meta_key ) {
+158:         $order = wc_get_order( $order_id );
+159:         
+160:         if ( ! $order ) {
+161:             return false;
+162:         }
+163:         
+164:         $order->delete_meta_data( $meta_key );
+165:         $order->save();
+166:         
+167:         return true;
+168:     }
+169: }
+
+================
+File: currify-currency-switcher/includes/class-order-meta.php
+================
+  1: <?php
+  2: /**
+  3:  * Order Meta Class
+  4:  * 
+  5:  * Handles saving multi-currency order data, payment management meta box, and partial payments
+  6:  */
+  7: 
+  8: if ( ! defined( 'ABSPATH' ) ) {
+  9:     exit;
+ 10: }
+ 11: 
+ 12: class Currify_Order_Meta {
+ 13: 
+ 14:     /**
+ 15:      * Instance
+ 16:      */
+ 17:     private static $instance = null;
+ 18: 
+ 19:     /**
+ 20:      * Get instance
+ 21:      */
+ 22:     public static function get_instance() {
+ 23:         if ( null === self::$instance ) {
+ 24:             self::$instance = new self();
+ 25:         }
+ 26:         return self::$instance;
+ 27:     }
+ 28: 
+ 29:     /**
+ 30:      * Constructor
+ 31:      */
+ 32:     private function __construct() {
+ 33:         // Register custom order status
+ 34:         add_action( 'init', array( $this, 'register_custom_order_status' ) );
+ 35:         add_filter( 'wc_order_statuses', array( $this, 'add_custom_order_status' ) );
+ 36:         
+ 37:         // Save order meta on checkout
+ 38:         add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_currency_meta' ), 10, 2 );
+ 39:         
+ 40:         // Add meta box for payment management
+ 41:         add_action( 'add_meta_boxes', array( $this, 'add_payment_meta_box' ) );
+ 42:         
+ 43:         // Save payment
+ 44:         add_action( 'wp_ajax_currify_add_payment', array( $this, 'add_payment_ajax' ) );
+ 45:         
+ 46:         // Display currency info in order details
+ 47:         add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'display_order_currency_info' ) );
+ 48:         
+ 49:         // Add currency info to emails
+ 50:         add_action( 'woocommerce_email_after_order_table', array( $this, 'add_currency_info_to_email' ), 10, 4 );
+ 51:     }
+ 52: 
+ 53:     /**
+ 54:      * Register custom order status
+ 55:      */
+ 56:     public function register_custom_order_status() {
+ 57:         register_post_status( 'wc-partially-paid', array(
+ 58:             'label'                     => __( 'Partially Paid', 'currify' ),
+ 59:             'public'                    => true,
+ 60:             'exclude_from_search'       => false,
+ 61:             'show_in_admin_all_list'    => true,
+ 62:             'show_in_admin_status_list' => true,
+ 63:             'label_count'               => _n_noop( 'Partially Paid <span class="count">(%s)</span>', 'Partially Paid <span class="count">(%s)</span>', 'currify' ),
+ 64:         ) );
+ 65:     }
+ 66: 
+ 67:     /**
+ 68:      * Add custom status to WC order statuses
+ 69:      */
+ 70:     public function add_custom_order_status( $order_statuses ) {
+ 71:         $order_statuses['wc-partially-paid'] = __( 'Partially Paid', 'currify' );
+ 72:         return $order_statuses;
+ 73:     }
+ 74: 
+ 75:     /**
+ 76:      * Save order currency meta
+ 77:      */
+ 78:     public function save_order_currency_meta( $order, $data ) {
+ 79:         $current_currency = $this->get_current_currency();
+ 80:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+ 81:         $currencies = get_option( 'currify_currencies', array() );
+ 82:         
+ 83:         $exchange_rate = 1;
+ 84:         
+ 85:         if ( $current_currency !== $base_currency && isset( $currencies[ $current_currency ] ) ) {
+ 86:             $exchange_rate = $currencies[ $current_currency ]['exchange_rate'];
+ 87:         }
+ 88:         
+ 89:         // Calculate total in base currency
+ 90:         $order_total = $order->get_total();
+ 91:         $total_in_base = $order_total / $exchange_rate;
+ 92:         
+ 93:         // Save meta data
+ 94:         $order->update_meta_data( '_order_currency', $current_currency );
+ 95:         $order->update_meta_data( '_base_currency', $base_currency );
+ 96:         $order->update_meta_data( '_currency_exchange_rate', $exchange_rate );
+ 97:         $order->update_meta_data( '_order_total_in_base_currency', $total_in_base );
+ 98:         
+ 99:         // Override WooCommerce currency
+100:         $order->set_currency( $current_currency );
+101:     }
+102: 
+103:     /**
+104:      * Get current currency
+105:      */
+106:     private function get_current_currency() {
+107:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+108:         
+109:         if ( isset( $_SESSION['currify_selected_currency'] ) ) {
+110:             return sanitize_text_field( $_SESSION['currify_selected_currency'] );
+111:         }
+112:         
+113:         if ( isset( $_COOKIE['currify_selected_currency'] ) ) {
+114:             return sanitize_text_field( $_COOKIE['currify_selected_currency'] );
+115:         }
+116:         
+117:         return $base_currency;
+118:     }
+119: 
+120:     /**
+121:      * Add payment management meta box
+122:      */
+123:     public function add_payment_meta_box() {
+124:         add_meta_box(
+125:             'currify_payment_management',
+126:             __( 'Payment Management', 'currify' ),
+127:             array( $this, 'render_payment_meta_box' ),
+128:             'shop_order',
+129:             'normal',
+130:             'high'
+131:         );
+132:     }
+133: 
+134:     /**
+135:      * Render payment meta box
+136:      */
+137:     public function render_payment_meta_box( $post ) {
+138:         $order = wc_get_order( $post->ID );
+139:         
+140:         if ( ! $order ) {
+141:             return;
+142:         }
+143:         
+144:         // Only show for partially paid orders
+145:         if ( 'wc-partially-paid' !== $order->get_status() ) {
+146:             echo '<p>' . esc_html__( 'This order is not marked as "Partially Paid". Change the order status to enable payment management.', 'currify' ) . '</p>';
+147:             return;
+148:         }
+149:         
+150:         $base_currency = $order->get_meta( '_base_currency', true );
+151:         $total_in_base = floatval( $order->get_meta( '_order_total_in_base_currency', true ) );
+152:         $payments = $order->get_meta( '_currify_payments', true );
+153:         
+154:         if ( ! is_array( $payments ) ) {
+155:             $payments = array();
+156:         }
+157:         
+158:         // Calculate total paid
+159:         $total_paid = 0;
+160:         foreach ( $payments as $payment ) {
+161:             $total_paid += floatval( $payment['amount_in_base'] ?? 0 );
+162:         }
+163:         
+164:         $remaining_balance = $total_in_base - $total_paid;
+165:         
+166:         ?>
+167:         <div class="currify-payment-management">
+168:             <div class="currify-payment-summary">
+169:                 <p><strong><?php esc_html_e( 'Total Debt (Base Currency):', 'currify' ); ?></strong> 
+170:                    <?php echo esc_html( number_format( $total_in_base, 2 ) . ' ' . $base_currency ); ?></p>
+171:                 <p><strong><?php esc_html_e( 'Total Paid:', 'currify' ); ?></strong> 
+172:                    <?php echo esc_html( number_format( $total_paid, 2 ) . ' ' . $base_currency ); ?></p>
+173:                 <p><strong><?php esc_html_e( 'Remaining Balance:', 'currify' ); ?></strong> 
+174:                    <span style="color: <?php echo $remaining_balance > 0 ? 'red' : 'green'; ?>; font-size: 1.2em;">
+175:                        <?php echo esc_html( number_format( $remaining_balance, 2 ) . ' ' . $base_currency ); ?>
+176:                    </span>
+177:                 </p>
+178:             </div>
+179:             
+180:             <hr>
+181:             
+182:             <h3><?php esc_html_e( 'Add New Payment', 'currify' ); ?></h3>
+183:             
+184:             <form id="currify-add-payment-form">
+185:                 <?php wp_nonce_field( 'currify_add_payment_action', 'currify_payment_nonce' ); ?>
+186:                 <input type="hidden" name="order_id" value="<?php echo esc_attr( $post->ID ); ?>">
+187:                 
+188:                 <table class="form-table">
+189:                     <tr>
+190:                         <th><label for="payment_amount"><?php esc_html_e( 'Payment Amount', 'currify' ); ?></label></th>
+191:                         <td><input type="number" name="payment_amount" id="payment_amount" step="0.01" required></td>
+192:                     </tr>
+193:                     <tr>
+194:                         <th><label for="payment_currency"><?php esc_html_e( 'Payment Currency', 'currify' ); ?></label></th>
+195:                         <td>
+196:                             <select name="payment_currency" id="payment_currency">
+197:                                 <option value="<?php echo esc_attr( $base_currency ); ?>"><?php echo esc_html( $base_currency ); ?></option>
+198:                                 <?php
+199:                                 $currencies = get_option( 'currify_currencies', array() );
+200:                                 foreach ( $currencies as $code => $currency ) :
+201:                                 ?>
+202:                                     <option value="<?php echo esc_attr( $code ); ?>"><?php echo esc_html( $code ); ?></option>
+203:                                 <?php endforeach; ?>
+204:                             </select>
+205:                         </td>
+206:                     </tr>
+207:                     <tr>
+208:                         <th><label for="payment_exchange_rate"><?php esc_html_e( 'Exchange Rate', 'currify' ); ?></label></th>
+209:                         <td>
+210:                             <input type="number" name="payment_exchange_rate" id="payment_exchange_rate" step="0.000001" value="1" required>
+211:                             <p class="description"><?php esc_html_e( 'Auto-filled with current rate but can be edited', 'currify' ); ?></p>
+212:                         </td>
+213:                     </tr>
+214:                     <tr>
+215:                         <th><label for="payment_note"><?php esc_html_e( 'Payment Note', 'currify' ); ?></label></th>
+216:                         <td><textarea name="payment_note" id="payment_note" rows="3" class="large-text"></textarea></td>
+217:                     </tr>
+218:                 </table>
+219:                 
+220:                 <p>
+221:                     <button type="submit" class="button button-primary"><?php esc_html_e( 'Add Payment', 'currify' ); ?></button>
+222:                     <span id="currify-payment-message"></span>
+223:                 </p>
+224:             </form>
+225:             
+226:             <hr>
+227:             
+228:             <h3><?php esc_html_e( 'Payment History', 'currify' ); ?></h3>
+229:             
+230:             <?php if ( ! empty( $payments ) ) : ?>
+231:                 <table class="wp-list-table widefat fixed striped">
+232:                     <thead>
+233:                         <tr>
+234:                             <th><?php esc_html_e( 'Date', 'currify' ); ?></th>
+235:                             <th><?php esc_html_e( 'Amount', 'currify' ); ?></th>
+236:                             <th><?php esc_html_e( 'Currency', 'currify' ); ?></th>
+237:                             <th><?php esc_html_e( 'Exchange Rate', 'currify' ); ?></th>
+238:                             <th><?php esc_html_e( 'Amount in Base', 'currify' ); ?></th>
+239:                             <th><?php esc_html_e( 'Note', 'currify' ); ?></th>
+240:                         </tr>
+241:                     </thead>
+242:                     <tbody>
+243:                         <?php foreach ( $payments as $payment ) : ?>
+244:                             <tr>
+245:                                 <td><?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $payment['date'] ) ) ); ?></td>
+246:                                 <td><?php echo esc_html( number_format( $payment['amount'], 2 ) ); ?></td>
+247:                                 <td><?php echo esc_html( $payment['currency'] ); ?></td>
+248:                                 <td><?php echo esc_html( number_format( $payment['exchange_rate'], 6 ) ); ?></td>
+249:                                 <td><?php echo esc_html( number_format( $payment['amount_in_base'], 2 ) . ' ' . $base_currency ); ?></td>
+250:                                 <td><?php echo esc_html( $payment['note'] ); ?></td>
+251:                             </tr>
+252:                         <?php endforeach; ?>
+253:                     </tbody>
+254:                 </table>
+255:             <?php else : ?>
+256:                 <p><?php esc_html_e( 'No payments recorded yet.', 'currify' ); ?></p>
+257:             <?php endif; ?>
+258:         </div>
+259:         
+260:         <script type="text/javascript">
+261:         jQuery(document).ready(function($) {
+262:             // Auto-update exchange rate when currency changes
+263:             $('#payment_currency').on('change', function() {
+264:                 var currency = $(this).val();
+265:                 var baseCurrency = '<?php echo esc_js( $base_currency ); ?>';
+266:                 
+267:                 if (currency === baseCurrency) {
+268:                     $('#payment_exchange_rate').val(1);
+269:                     return;
+270:                 }
+271:                 
+272:                 // Get rate from settings
+273:                 var currencies = <?php echo json_encode( get_option( 'currify_currencies', array() ) ); ?>;
+274:                 
+275:                 if (currencies[currency]) {
+276:                     $('#payment_exchange_rate').val(currencies[currency].exchange_rate);
+277:                 }
+278:             });
+279:             
+280:             // Handle payment submission
+281:             $('#currify-add-payment-form').on('submit', function(e) {
+282:                 e.preventDefault();
+283:                 
+284:                 var formData = {
+285:                     action: 'currify_add_payment',
+286:                     nonce: $('#currify_payment_nonce').val(),
+287:                     order_id: $('input[name="order_id"]').val(),
+288:                     amount: $('#payment_amount').val(),
+289:                     currency: $('#payment_currency').val(),
+290:                     exchange_rate: $('#payment_exchange_rate').val(),
+291:                     note: $('#payment_note').val()
+292:                 };
+293:                 
+294:                 $.post(ajaxurl, formData, function(response) {
+295:                     if (response.success) {
+296:                         $('#currify-payment-message').html('<span style="color: green;">' + response.data.message + '</span>');
+297:                         setTimeout(function() {
+298:                             location.reload();
+299:                         }, 1000);
+300:                     } else {
+301:                         $('#currify-payment-message').html('<span style="color: red;">' + response.data.message + '</span>');
+302:                     }
+303:                 });
+304:             });
+305:         });
+306:         </script>
+307:         
+308:         <style>
+309:         .currify-payment-management {
+310:             padding: 12px;
+311:         }
+312:         .currify-payment-summary {
+313:             background: #f9f9f9;
+314:             padding: 15px;
+315:             border-left: 4px solid #2271b1;
+316:         }
+317:         </style>
+318:         <?php
+319:     }
+320: 
+321:     /**
+322:      * Add payment via AJAX
+323:      */
+324:     public function add_payment_ajax() {
+325:         check_ajax_referer( 'currify_add_payment_action', 'nonce' );
+326:         
+327:         if ( ! current_user_can( 'edit_shop_orders' ) ) {
+328:             wp_send_json_error( array( 'message' => __( 'Permission denied.', 'currify' ) ) );
+329:         }
+330:         
+331:         $order_id = intval( $_POST['order_id'] ?? 0 );
+332:         $amount = floatval( $_POST['amount'] ?? 0 );
+333:         $currency = sanitize_text_field( $_POST['currency'] ?? '' );
+334:         $exchange_rate = floatval( $_POST['exchange_rate'] ?? 1 );
+335:         $note = sanitize_textarea_field( $_POST['note'] ?? '' );
+336:         
+337:         if ( ! $order_id || $amount <= 0 ) {
+338:             wp_send_json_error( array( 'message' => __( 'Invalid payment data.', 'currify' ) ) );
+339:         }
+340:         
+341:         $order = wc_get_order( $order_id );
+342:         
+343:         if ( ! $order ) {
+344:             wp_send_json_error( array( 'message' => __( 'Order not found.', 'currify' ) ) );
+345:         }
+346:         
+347:         // Calculate amount in base currency
+348:         $amount_in_base = $amount / $exchange_rate;
+349:         
+350:         // Get existing payments
+351:         $payments = $order->get_meta( '_currify_payments', true );
+352:         
+353:         if ( ! is_array( $payments ) ) {
+354:             $payments = array();
+355:         }
+356:         
+357:         // Add new payment
+358:         $payments[] = array(
+359:             'date'           => current_time( 'mysql' ),
+360:             'amount'         => $amount,
+361:             'currency'       => $currency,
+362:             'exchange_rate'  => $exchange_rate,
+363:             'amount_in_base' => $amount_in_base,
+364:             'note'           => $note,
+365:         );
+366:         
+367:         $order->update_meta_data( '_currify_payments', $payments );
+368:         $order->save();
+369:         
+370:         // Add order note
+371:         $order->add_order_note(
+372:             sprintf(
+373:                 __( 'Payment received: %s %s (Exchange rate: %s, Equivalent: %s in base currency). Note: %s', 'currify' ),
+374:                 number_format( $amount, 2 ),
+375:                 $currency,
+376:                 number_format( $exchange_rate, 6 ),
+377:                 number_format( $amount_in_base, 2 ),
+378:                 $note
+379:             )
+380:         );
+381:         
+382:         wp_send_json_success( array( 'message' => __( 'Payment added successfully.', 'currify' ) ) );
+383:     }
+384: 
+385:     /**
+386:      * Display order currency info in admin
+387:      */
+388:     public function display_order_currency_info( $order ) {
+389:         $order_currency = $order->get_meta( '_order_currency', true );
+390:         $base_currency = $order->get_meta( '_base_currency', true );
+391:         $exchange_rate = $order->get_meta( '_currency_exchange_rate', true );
+392:         $total_in_base = $order->get_meta( '_order_total_in_base_currency', true );
+393:         
+394:         if ( empty( $order_currency ) ) {
+395:             return;
+396:         }
+397:         ?>
+398:         <div class="currify-order-info" style="margin-top: 20px; padding: 15px; background: #f0f0f1; border-left: 4px solid #2271b1;">
+399:             <h3><?php esc_html_e( 'Multi-Currency Information', 'currify' ); ?></h3>
+400:             <p><strong><?php esc_html_e( 'Order Currency:', 'currify' ); ?></strong> <?php echo esc_html( $order_currency ); ?></p>
+401:             <p><strong><?php esc_html_e( 'Base Currency:', 'currify' ); ?></strong> <?php echo esc_html( $base_currency ); ?></p>
+402:             <p><strong><?php esc_html_e( 'Exchange Rate:', 'currify' ); ?></strong> <?php echo esc_html( number_format( $exchange_rate, 6 ) ); ?></p>
+403:             <p><strong><?php esc_html_e( 'Total in Base Currency:', 'currify' ); ?></strong> <?php echo esc_html( number_format( $total_in_base, 2 ) . ' ' . $base_currency ); ?></p>
+404:         </div>
+405:         <?php
+406:     }
+407: 
+408:     /**
+409:      * Add currency info to emails
+410:      */
+411:     public function add_currency_info_to_email( $order, $sent_to_admin, $plain_text, $email ) {
+412:         $order_currency = $order->get_meta( '_order_currency', true );
+413:         $base_currency = $order->get_meta( '_base_currency', true );
+414:         $exchange_rate = $order->get_meta( '_currency_exchange_rate', true );
+415:         $total_in_base = $order->get_meta( '_order_total_in_base_currency', true );
+416:         
+417:         if ( empty( $order_currency ) ) {
+418:             return;
+419:         }
+420:         
+421:         if ( $plain_text ) {
+422:             echo "\n\n" . esc_html__( 'CURRENCY INFORMATION', 'currify' ) . "\n";
+423:             echo str_repeat( '-', 50 ) . "\n";
+424:             echo esc_html__( 'Payment Currency:', 'currify' ) . ' ' . esc_html( $order_currency ) . "\n";
+425:             echo esc_html__( 'Exchange Rate:', 'currify' ) . ' ' . esc_html( number_format( $exchange_rate, 6 ) ) . "\n";
+426:             echo esc_html__( 'Base Currency:', 'currify' ) . ' ' . esc_html( $base_currency ) . "\n";
+427:             echo esc_html__( 'Total in Base Currency:', 'currify' ) . ' ' . esc_html( number_format( $total_in_base, 2 ) . ' ' . $base_currency ) . "\n";
+428:             
+429:             // Add partial payment info if applicable
+430:             if ( 'wc-partially-paid' === $order->get_status() ) {
+431:                 $payments = $order->get_meta( '_currify_payments', true );
+432:                 
+433:                 if ( is_array( $payments ) ) {
+434:                     $total_paid = 0;
+435:                     foreach ( $payments as $payment ) {
+436:                         $total_paid += floatval( $payment['amount_in_base'] ?? 0 );
+437:                     }
+438:                     
+439:                     $remaining = $total_in_base - $total_paid;
+440:                     
+441:                     echo "\n" . esc_html__( 'PARTIAL PAYMENT DETAILS', 'currify' ) . "\n";
+442:                     echo esc_html__( 'Total Order Value:', 'currify' ) . ' ' . esc_html( number_format( $total_in_base, 2 ) . ' ' . $base_currency ) . "\n";
+443:                     echo esc_html__( 'Total Paid to Date:', 'currify' ) . ' ' . esc_html( number_format( $total_paid, 2 ) . ' ' . $base_currency ) . "\n";
+444:                     echo esc_html__( 'Remaining Balance:', 'currify' ) . ' ' . esc_html( number_format( $remaining, 2 ) . ' ' . $base_currency ) . "\n";
+445:                 }
+446:             }
+447:         } else {
+448:             ?>
+449:             <h2 style="color: #2271b1; margin-top: 30px;"><?php esc_html_e( 'Currency Information', 'currify' ); ?></h2>
+450:             <table cellspacing="0" cellpadding="6" style="width: 100%; border: 1px solid #eee;">
+451:                 <tr>
+452:                     <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Payment Currency', 'currify' ); ?></th>
+453:                     <td style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php echo esc_html( $order_currency ); ?></td>
+454:                 </tr>
+455:                 <tr>
+456:                     <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Exchange Rate', 'currify' ); ?></th>
+457:                     <td style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php echo esc_html( number_format( $exchange_rate, 6 ) ); ?></td>
+458:                 </tr>
+459:                 <tr>
+460:                     <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Base Currency', 'currify' ); ?></th>
+461:                     <td style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php echo esc_html( $base_currency ); ?></td>
+462:                 </tr>
+463:                 <tr>
+464:                     <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Total in Base Currency', 'currify' ); ?></th>
+465:                     <td style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php echo esc_html( number_format( $total_in_base, 2 ) . ' ' . $base_currency ); ?></td>
+466:                 </tr>
+467:             </table>
+468:             
+469:             <?php
+470:             // Add partial payment info if applicable
+471:             if ( 'wc-partially-paid' === $order->get_status() ) {
+472:                 $payments = $order->get_meta( '_currify_payments', true );
+473:                 
+474:                 if ( is_array( $payments ) ) {
+475:                     $total_paid = 0;
+476:                     foreach ( $payments as $payment ) {
+477:                         $total_paid += floatval( $payment['amount_in_base'] ?? 0 );
+478:                     }
+479:                     
+480:                     $remaining = $total_in_base - $total_paid;
+481:                     ?>
+482:                     <h3 style="color: #2271b1; margin-top: 20px;"><?php esc_html_e( 'Partial Payment Details', 'currify' ); ?></h3>
+483:                     <table cellspacing="0" cellpadding="6" style="width: 100%; border: 1px solid #eee;">
+484:                         <tr>
+485:                             <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Total Order Value', 'currify' ); ?></th>
+486:                             <td style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php echo esc_html( number_format( $total_in_base, 2 ) . ' ' . $base_currency ); ?></td>
+487:                         </tr>
+488:                         <tr>
+489:                             <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Total Paid to Date', 'currify' ); ?></th>
+490:                             <td style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php echo esc_html( number_format( $total_paid, 2 ) . ' ' . $base_currency ); ?></td>
+491:                         </tr>
+492:                         <tr>
+493:                             <th style="text-align: left; border: 1px solid #eee; padding: 12px;"><?php esc_html_e( 'Remaining Balance', 'currify' ); ?></th>
+494:                             <td style="text-align: left; border: 1px solid #eee; padding: 12px; color: red; font-weight: bold;"><?php echo esc_html( number_format( $remaining, 2 ) . ' ' . $base_currency ); ?></td>
+495:                         </tr>
+496:                     </table>
+497:                     <?php
+498:                 }
+499:             }
+500:         }
+501:     }
+502: }
+
+================
+File: currify-currency-switcher/includes/class-product-meta.php
+================
+  1: <?php
+  2: /**
+  3:  * Product Meta Class
+  4:  * 
+  5:  * Handles fixed pricing and admin bargain features
+  6:  */
+  7: 
+  8: if ( ! defined( 'ABSPATH' ) ) {
+  9:     exit;
+ 10: }
+ 11: 
+ 12: class Currify_Product_Meta {
+ 13: 
+ 14:     /**
+ 15:      * Instance
+ 16:      */
+ 17:     private static $instance = null;
+ 18: 
+ 19:     /**
+ 20:      * Get instance
+ 21:      */
+ 22:     public static function get_instance() {
+ 23:         if ( null === self::$instance ) {
+ 24:             self::$instance = new self();
+ 25:         }
+ 26:         return self::$instance;
+ 27:     }
+ 28: 
+ 29:     /**
+ 30:      * Constructor
+ 31:      */
+ 32:     private function __construct() {
+ 33:         // Add product pricing tab
+ 34:         add_filter( 'woocommerce_product_data_tabs', array( $this, 'add_product_data_tab' ) );
+ 35:         add_action( 'woocommerce_product_data_panels', array( $this, 'add_product_pricing_fields' ) );
+ 36:         add_action( 'woocommerce_process_product_meta', array( $this, 'save_product_pricing_fields' ) );
+ 37:         
+ 38:         // Admin bargain field on frontend
+ 39:         add_action( 'woocommerce_single_product_summary', array( $this, 'add_admin_bargain_field' ), 25 );
+ 40:         
+ 41:         // Handle bargain price in cart
+ 42:         add_filter( 'woocommerce_add_to_cart_validation', array( $this, 'validate_bargain_price' ), 10, 3 );
+ 43:         add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_bargain_data_to_cart' ), 10, 2 );
+ 44:         add_filter( 'woocommerce_get_cart_item_from_session', array( $this, 'get_cart_item_from_session' ), 10, 2 );
+ 45:         add_filter( 'woocommerce_before_calculate_totals', array( $this, 'apply_bargain_price' ), 10, 1 );
+ 46:         add_filter( 'woocommerce_cart_item_name', array( $this, 'display_bargain_in_cart' ), 10, 3 );
+ 47:         
+ 48:         // Save bargain data to order
+ 49:         add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'save_bargain_to_order_item' ), 10, 4 );
+ 50:         
+ 51:         // Apply fixed pricing if set
+ 52:         add_filter( 'woocommerce_product_get_price', array( $this, 'apply_fixed_pricing' ), 10, 2 );
+ 53:         add_filter( 'woocommerce_product_get_regular_price', array( $this, 'apply_fixed_pricing' ), 10, 2 );
+ 54:         add_filter( 'woocommerce_product_get_sale_price', array( $this, 'apply_fixed_sale_pricing' ), 10, 2 );
+ 55:     }
+ 56: 
+ 57:     /**
+ 58:      * Add product data tab
+ 59:      */
+ 60:     public function add_product_data_tab( $tabs ) {
+ 61:         $tabs['currify_pricing'] = array(
+ 62:             'label'    => __( 'Currify Pricing', 'currify' ),
+ 63:             'target'   => 'currify_pricing_data',
+ 64:             'priority' => 80,
+ 65:         );
+ 66:         return $tabs;
+ 67:     }
+ 68: 
+ 69:     /**
+ 70:      * Add product pricing fields
+ 71:      */
+ 72:     public function add_product_pricing_fields() {
+ 73:         global $post;
+ 74:         
+ 75:         $currencies = get_option( 'currify_currencies', array() );
+ 76:         
+ 77:         if ( empty( $currencies ) ) {
+ 78:             ?>
+ 79:             <div id="currify_pricing_data" class="panel woocommerce_options_panel">
+ 80:                 <p style="padding: 12px;"><?php esc_html_e( 'No additional currencies configured. Please add currencies in Currify settings.', 'currify' ); ?></p>
+ 81:             </div>
+ 82:             <?php
+ 83:             return;
+ 84:         }
+ 85:         ?>
+ 86:         
+ 87:         <div id="currify_pricing_data" class="panel woocommerce_options_panel">
+ 88:             <div class="options_group">
+ 89:                 <p style="padding: 12px;"><strong><?php esc_html_e( 'Set fixed prices for specific currencies. Leave empty to use automatic conversion.', 'currify' ); ?></strong></p>
+ 90:                 
+ 91:                 <?php foreach ( $currencies as $code => $currency ) : ?>
+ 92:                     <div style="padding: 12px; border-bottom: 1px solid #eee;">
+ 93:                         <h4><?php echo esc_html( $code . ' - ' . $currency['symbol'] ); ?></h4>
+ 94:                         
+ 95:                         <?php
+ 96:                         woocommerce_wp_text_input( array(
+ 97:                             'id'          => '_currify_regular_price_' . $code,
+ 98:                             'label'       => __( 'Regular Price', 'currify' ) . ' (' . $code . ')',
+ 99:                             'placeholder' => __( 'Leave blank for auto-conversion', 'currify' ),
+100:                             'type'        => 'number',
+101:                             'custom_attributes' => array(
+102:                                 'step' => '0.01',
+103:                             ),
+104:                         ) );
+105:                         
+106:                         woocommerce_wp_text_input( array(
+107:                             'id'          => '_currify_sale_price_' . $code,
+108:                             'label'       => __( 'Sale Price', 'currify' ) . ' (' . $code . ')',
+109:                             'placeholder' => __( 'Leave blank for auto-conversion', 'currify' ),
+110:                             'type'        => 'number',
+111:                             'custom_attributes' => array(
+112:                                 'step' => '0.01',
+113:                             ),
+114:                         ) );
+115:                         ?>
+116:                     </div>
+117:                 <?php endforeach; ?>
+118:             </div>
+119:         </div>
+120:         <?php
+121:     }
+122: 
+123:     /**
+124:      * Save product pricing fields
+125:      */
+126:     public function save_product_pricing_fields( $post_id ) {
+127:         $currencies = get_option( 'currify_currencies', array() );
+128:         
+129:         foreach ( $currencies as $code => $currency ) {
+130:             $regular_price = isset( $_POST[ '_currify_regular_price_' . $code ] ) ? sanitize_text_field( $_POST[ '_currify_regular_price_' . $code ] ) : '';
+131:             $sale_price = isset( $_POST[ '_currify_sale_price_' . $code ] ) ? sanitize_text_field( $_POST[ '_currify_sale_price_' . $code ] ) : '';
+132:             
+133:             update_post_meta( $post_id, '_currify_regular_price_' . $code, $regular_price );
+134:             update_post_meta( $post_id, '_currify_sale_price_' . $code, $sale_price );
+135:         }
+136:     }
+137: 
+138:     /**
+139:      * Apply fixed pricing
+140:      */
+141:     public function apply_fixed_pricing( $price, $product ) {
+142:         // This is handled by JavaScript on frontend for cache compatibility
+143:         return $price;
+144:     }
+145: 
+146:     /**
+147:      * Apply fixed sale pricing
+148:      */
+149:     public function apply_fixed_sale_pricing( $price, $product ) {
+150:         // This is handled by JavaScript on frontend for cache compatibility
+151:         return $price;
+152:     }
+153: 
+154:     /**
+155:      * Add admin bargain field
+156:      */
+157:     public function add_admin_bargain_field() {
+158:         if ( ! current_user_can( 'manage_woocommerce' ) ) {
+159:             return;
+160:         }
+161:         
+162:         global $product;
+163:         
+164:         if ( ! $product ) {
+165:             return;
+166:         }
+167:         
+168:         $current_currency = $this->get_current_currency();
+169:         $currencies = get_option( 'currify_currencies', array() );
+170:         $currency_symbol = isset( $currencies[ $current_currency ] ) ? $currencies[ $current_currency ]['symbol'] : get_woocommerce_currency_symbol();
+171:         
+172:         ?>
+173:         <div class="currify-admin-bargain" style="margin: 20px 0; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107;">
+174:             <h4><?php esc_html_e( 'Shop Manager Bargain Price', 'currify' ); ?></h4>
+175:             <p style="margin: 5px 0;">
+176:                 <label for="currify_bargain_price">
+177:                     <?php esc_html_e( 'Enter custom price in', 'currify' ); ?> <?php echo esc_html( $current_currency ); ?>:
+178:                 </label>
+179:             </p>
+180:             <input type="number" id="currify_bargain_price" step="0.01" placeholder="<?php echo esc_attr( $currency_symbol ); ?>" style="width: 150px;">
+181:             <input type="hidden" id="currify_bargain_currency" value="<?php echo esc_attr( $current_currency ); ?>">
+182:             <input type="hidden" id="currify_original_price" value="<?php echo esc_attr( $product->get_price() ); ?>">
+183:             <p class="description"><?php esc_html_e( 'This will calculate the equivalent base price and apply the discount to the order.', 'currify' ); ?></p>
+184:         </div>
+185:         
+186:         <script type="text/javascript">
+187:         jQuery(document).ready(function($) {
+188:             // Modify add to cart to include bargain price
+189:             $('form.cart').on('submit', function(e) {
+190:                 var bargainPrice = $('#currify_bargain_price').val();
+191:                 
+192:                 if (bargainPrice && parseFloat(bargainPrice) > 0) {
+193:                     var input = $('<input>').attr({
+194:                         type: 'hidden',
+195:                         name: 'currify_bargain_price',
+196:                         value: bargainPrice
+197:                     });
+198:                     $(this).append(input);
+199:                     
+200:                     var currencyInput = $('<input>').attr({
+201:                         type: 'hidden',
+202:                         name: 'currify_bargain_currency',
+203:                         value: $('#currify_bargain_currency').val()
+204:                     });
+205:                     $(this).append(currencyInput);
+206:                     
+207:                     var originalInput = $('<input>').attr({
+208:                         type: 'hidden',
+209:                         name: 'currify_original_price',
+210:                         value: $('#currify_original_price').val()
+211:                     });
+212:                     $(this).append(originalInput);
+213:                 }
+214:             });
+215:         });
+216:         </script>
+217:         <?php
+218:     }
+219: 
+220:     /**
+221:      * Validate bargain price
+222:      */
+223:     public function validate_bargain_price( $passed, $product_id, $quantity ) {
+224:         if ( ! isset( $_POST['currify_bargain_price'] ) ) {
+225:             return $passed;
+226:         }
+227:         
+228:         if ( ! current_user_can( 'manage_woocommerce' ) ) {
+229:             wc_add_notice( __( 'You do not have permission to set bargain prices.', 'currify' ), 'error' );
+230:             return false;
+231:         }
+232:         
+233:         return $passed;
+234:     }
+235: 
+236:     /**
+237:      * Add bargain data to cart
+238:      */
+239:     public function add_bargain_data_to_cart( $cart_item_data, $product_id ) {
+240:         if ( isset( $_POST['currify_bargain_price'] ) && ! empty( $_POST['currify_bargain_price'] ) ) {
+241:             $bargain_price = floatval( $_POST['currify_bargain_price'] );
+242:             $bargain_currency = sanitize_text_field( $_POST['currify_bargain_currency'] ?? '' );
+243:             $original_price = floatval( $_POST['currify_original_price'] ?? 0 );
+244:             
+245:             if ( $bargain_price > 0 ) {
+246:                 // Convert bargain price to base currency
+247:                 $base_currency = get_option( 'currify_base_currency', 'USD' );
+248:                 $currencies = get_option( 'currify_currencies', array() );
+249:                 
+250:                 $exchange_rate = 1;
+251:                 if ( $bargain_currency !== $base_currency && isset( $currencies[ $bargain_currency ] ) ) {
+252:                     $exchange_rate = $currencies[ $bargain_currency ]['exchange_rate'];
+253:                 }
+254:                 
+255:                 $bargain_price_in_base = $bargain_price / $exchange_rate;
+256:                 
+257:                 $cart_item_data['currify_bargain'] = array(
+258:                     'original_price'         => $original_price,
+259:                     'bargain_price'          => $bargain_price,
+260:                     'bargain_currency'       => $bargain_currency,
+261:                     'bargain_price_in_base'  => $bargain_price_in_base,
+262:                     'discount_amount'        => $original_price - $bargain_price_in_base,
+263:                 );
+264:             }
+265:         }
+266:         
+267:         return $cart_item_data;
+268:     }
+269: 
+270:     /**
+271:      * Get cart item from session
+272:      */
+273:     public function get_cart_item_from_session( $cart_item, $values ) {
+274:         if ( isset( $values['currify_bargain'] ) ) {
+275:             $cart_item['currify_bargain'] = $values['currify_bargain'];
+276:         }
+277:         return $cart_item;
+278:     }
+279: 
+280:     /**
+281:      * Apply bargain price
+282:      */
+283:     public function apply_bargain_price( $cart ) {
+284:         if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+285:             return;
+286:         }
+287:         
+288:         foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+289:             if ( isset( $cart_item['currify_bargain'] ) ) {
+290:                 $cart_item['data']->set_price( $cart_item['currify_bargain']['bargain_price_in_base'] );
+291:             }
+292:         }
+293:     }
+294: 
+295:     /**
+296:      * Display bargain in cart
+297:      */
+298:     public function display_bargain_in_cart( $name, $cart_item, $cart_item_key ) {
+299:         if ( isset( $cart_item['currify_bargain'] ) ) {
+300:             $bargain = $cart_item['currify_bargain'];
+301:             $name .= '<br><small style="color: green;">' . 
+302:                      sprintf(
+303:                          __( 'Bargain Price: %s %s (Discount: %s)', 'currify' ),
+304:                          number_format( $bargain['bargain_price'], 2 ),
+305:                          $bargain['bargain_currency'],
+306:                          number_format( $bargain['discount_amount'], 2 )
+307:                      ) . '</small>';
+308:         }
+309:         return $name;
+310:     }
+311: 
+312:     /**
+313:      * Save bargain to order item
+314:      */
+315:     public function save_bargain_to_order_item( $item, $cart_item_key, $values, $order ) {
+316:         if ( isset( $values['currify_bargain'] ) ) {
+317:             $item->add_meta_data( '_currify_bargain_original_price', $values['currify_bargain']['original_price'], true );
+318:             $item->add_meta_data( '_currify_bargain_price', $values['currify_bargain']['bargain_price'], true );
+319:             $item->add_meta_data( '_currify_bargain_currency', $values['currify_bargain']['bargain_currency'], true );
+320:             $item->add_meta_data( '_currify_bargain_discount', $values['currify_bargain']['discount_amount'], true );
+321:         }
+322:     }
+323: 
+324:     /**
+325:      * Get current currency
+326:      */
+327:     private function get_current_currency() {
+328:         $base_currency = get_option( 'currify_base_currency', 'USD' );
+329:         
+330:         if ( isset( $_SESSION['currify_selected_currency'] ) ) {
+331:             return sanitize_text_field( $_SESSION['currify_selected_currency'] );
+332:         }
+333:         
+334:         if ( isset( $_COOKIE['currify_selected_currency'] ) ) {
+335:             return sanitize_text_field( $_COOKIE['currify_selected_currency'] );
+336:         }
+337:         
+338:         return $base_currency;
+339:     }
+340: }
+
+================
+File: currify-currency-switcher/currify-currency-switcher.php
+================
+  1: <?php
+  2: /**
+  3:  * Plugin Name: Currify Currency Switcher
+  4:  * Plugin URI: https://yoursite.com/currify
+  5:  * Description: Advanced multi-currency plugin for WooCommerce with AJAX price conversion, partial payments, and geolocation support.
+  6:  * Version: 1.0.0
+  7:  * Author: Your Name
+  8:  * Author URI: https://yoursite.com
+  9:  * Text Domain: currify
+ 10:  * Domain Path: /languages
+ 11:  * Requires at least: 5.8
+ 12:  * Requires PHP: 7.4
+ 13:  * WC requires at least: 5.0
+ 14:  * WC tested up to: 8.5
+ 15:  * License: GPL v2 or later
+ 16:  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ 17:  */
+ 18: 
+ 19: // Exit if accessed directly
+ 20: if ( ! defined( 'ABSPATH' ) ) {
+ 21:     exit;
+ 22: }
+ 23: 
+ 24: // Define plugin constants
+ 25: define( 'CURRIFY_VERSION', '1.0.0' );
+ 26: define( 'CURRIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+ 27: define( 'CURRIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+ 28: define( 'CURRIFY_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+ 29: 
+ 30: /**
+ 31:  * Main Currify Currency Switcher Class
+ 32:  * 
+ 33:  * Bootstraps the plugin and initializes all components
+ 34:  */
+ 35: final class Currify_Currency_Switcher {
+ 36: 
+ 37:     /**
+ 38:      * Single instance of the class
+ 39:      *
+ 40:      * @var Currify_Currency_Switcher
+ 41:      */
+ 42:     private static $instance = null;
+ 43: 
+ 44:     /**
+ 45:      * Get single instance
+ 46:      *
+ 47:      * @return Currify_Currency_Switcher
+ 48:      */
+ 49:     public static function get_instance() {
+ 50:         if ( null === self::$instance ) {
+ 51:             self::$instance = new self();
+ 52:         }
+ 53:         return self::$instance;
+ 54:     }
+ 55: 
+ 56:     /**
+ 57:      * Constructor
+ 58:      */
+ 59:     private function __construct() {
+ 60:         $this->check_requirements();
+ 61:         $this->declare_hpos_compatibility();
+ 62:         $this->includes();
+ 63:         $this->init_hooks();
+ 64:         $this->init_classes();
+ 65:     }
+ 66: 
+ 67:     /**
+ 68:      * Check if WooCommerce is active
+ 69:      */
+ 70:     private function check_requirements() {
+ 71:         if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
+ 72:             add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+ 73:             return;
+ 74:         }
+ 75:     }
+ 76: 
+ 77:     /**
+ 78:      * Declare HPOS compatibility
+ 79:      */
+ 80:     private function declare_hpos_compatibility() {
+ 81:         add_action( 'before_woocommerce_init', function() {
+ 82:             if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+ 83:                 \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+ 84:             }
+ 85:         } );
+ 86:     }
+ 87: 
+ 88:     /**
+ 89:      * WooCommerce missing notice
+ 90:      */
+ 91:     public function woocommerce_missing_notice() {
+ 92:         ?>
+ 93:         <div class="error">
+ 94:             <p><?php esc_html_e( 'Currify Currency Switcher requires WooCommerce to be installed and active.', 'currify' ); ?></p>
+ 95:         </div>
+ 96:         <?php
+ 97:     }
+ 98: 
+ 99:     /**
+100:      * Include required files
+101:      */
+102:     private function includes() {
+103:         require_once CURRIFY_PLUGIN_DIR . 'includes/class-hpos-compatibility.php';
+104:         require_once CURRIFY_PLUGIN_DIR . 'includes/class-admin-settings.php';
+105:         require_once CURRIFY_PLUGIN_DIR . 'includes/class-frontend-logic.php';
+106:         require_once CURRIFY_PLUGIN_DIR . 'includes/class-order-meta.php';
+107:         require_once CURRIFY_PLUGIN_DIR . 'includes/class-product-meta.php';
+108:     }
+109: 
+110:     /**
+111:      * Initialize WordPress hooks
+112:      */
+113:     private function init_hooks() {
+114:         // Start session for currency storage
+115:         add_action( 'init', array( $this, 'start_session' ), 1 );
+116:         
+117:         // Register activation/deactivation hooks
+118:         register_activation_hook( __FILE__, array( $this, 'activate' ) );
+119:         register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
+120:         
+121:         // Load text domain
+122:         add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+123:         
+124:         // Enqueue scripts and styles
+125:         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ) );
+126:         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+127:     }
+128: 
+129:     /**
+130:      * Initialize plugin classes
+131:      */
+132:     private function init_classes() {
+133:         if ( is_admin() ) {
+134:             Currify_Admin_Settings::get_instance();
+135:             Currify_Order_Meta::get_instance();
+136:             Currify_Product_Meta::get_instance();
+137:         }
+138:         
+139:         Currify_Frontend_Logic::get_instance();
+140:         Currify_Order_Meta::get_instance(); // Also needed for order processing
+141:     }
+142: 
+143:     /**
+144:      * Start PHP session
+145:      */
+146:     public function start_session() {
+147:         if ( ! session_id() && ! headers_sent() ) {
+148:             session_start();
+149:         }
+150:     }
+151: 
+152:     /**
+153:      * Plugin activation
+154:      */
+155:     public function activate() {
+156:         // Set default options
+157:         if ( false === get_option( 'currify_base_currency' ) ) {
+158:             update_option( 'currify_base_currency', get_woocommerce_currency() );
+159:         }
+160:         
+161:         if ( false === get_option( 'currify_geolocation_enabled' ) ) {
+162:             update_option( 'currify_geolocation_enabled', 'no' );
+163:         }
+164:         
+165:         if ( false === get_option( 'currify_currencies' ) ) {
+166:             update_option( 'currify_currencies', array() );
+167:         }
+168:         
+169:         // Schedule cron job for exchange rate updates (daily)
+170:         if ( ! wp_next_scheduled( 'currify_update_exchange_rates' ) ) {
+171:             wp_schedule_event( time(), 'daily', 'currify_update_exchange_rates' );
+172:         }
+173:         
+174:         flush_rewrite_rules();
+175:     }
+176: 
+177:     /**
+178:      * Plugin deactivation
+179:      */
+180:     public function deactivate() {
+181:         // Clear scheduled events
+182:         wp_clear_scheduled_hook( 'currify_update_exchange_rates' );
+183:         flush_rewrite_rules();
+184:     }
+185: 
+186:     /**
+187:      * Load plugin text domain
+188:      */
+189:     public function load_textdomain() {
+190:         load_plugin_textdomain( 'currify', false, dirname( CURRIFY_PLUGIN_BASENAME ) . '/languages' );
+191:     }
+192: 
+193:     /**
+194:      * Enqueue frontend assets
+195:      */
+196:     public function enqueue_frontend_assets() {
+197:         // Frontend CSS
+198:         wp_enqueue_style(
+199:             'currify-frontend',
+200:             CURRIFY_PLUGIN_URL . 'assets/css/frontend.css',
+201:             array(),
+202:             CURRIFY_VERSION
+203:         );
+204:         
+205:         // Frontend JavaScript
+206:         wp_enqueue_script(
+207:             'currify-frontend',
+208:             CURRIFY_PLUGIN_URL . 'assets/js/frontend.js',
+209:             array( 'jquery' ),
+210:             CURRIFY_VERSION,
+211:             true
+212:         );
+213:         
+214:         // Localize script with data
+215:         wp_localize_script(
+216:             'currify-frontend',
+217:             'currifyData',
+218:             array(
+219:                 'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+220:                 'nonce'            => wp_create_nonce( 'currify_nonce' ),
+221:                 'currentCurrency'  => $this->get_current_currency(),
+222:                 'baseCurrency'     => get_option( 'currify_base_currency', get_woocommerce_currency() ),
+223:                 'currencies'       => get_option( 'currify_currencies', array() ),
+224:             )
+225:         );
+226:     }
+227: 
+228:     /**
+229:      * Enqueue admin assets
+230:      */
+231:     public function enqueue_admin_assets( $hook ) {
+232:         // Support both traditional post.php and HPOS screens
+233:         $order_screens = array( 'post.php', 'post-new.php', 'woocommerce_page_wc-orders' );
+234:         $is_order_screen = in_array( $hook, $order_screens, true );
+235:         
+236:         // Only on our settings page and product/order edit screens
+237:         if ( 'settings_page_currify-settings' === $hook || $is_order_screen ) {
+238:             wp_enqueue_media();
+239:             wp_enqueue_style(
+240:                 'currify-admin',
+241:                 CURRIFY_PLUGIN_URL . 'assets/css/admin.css',
+242:                 array(),
+243:                 CURRIFY_VERSION
+244:             );
+245:             
+246:             wp_enqueue_script(
+247:                 'currify-admin',
+248:                 CURRIFY_PLUGIN_URL . 'assets/js/admin.js',
+249:                 array( 'jquery' ),
+250:                 CURRIFY_VERSION,
+251:                 true
+252:             );
+253:             
+254:             wp_localize_script(
+255:                 'currify-admin',
+256:                 'currifyAdminData',
+257:                 array(
+258:                     'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+259:                     'nonce'   => wp_create_nonce( 'currify_admin_nonce' ),
+260:                 )
+261:             );
+262:         }
+263:     }
+264: 
+265:     /**
+266:      * Get current selected currency
+267:      *
+268:      * @return string Currency code
+269:      */
+270:     public function get_current_currency() {
+271:         $base_currency = get_option( 'currify_base_currency', get_woocommerce_currency() );
+272:         
+273:         // Check session first
+274:         if ( isset( $_SESSION['currify_selected_currency'] ) ) {
+275:             return sanitize_text_field( $_SESSION['currify_selected_currency'] );
+276:         }
+277:         
+278:         // Check cookie
+279:         if ( isset( $_COOKIE['currify_selected_currency'] ) ) {
+280:             return sanitize_text_field( $_COOKIE['currify_selected_currency'] );
+281:         }
+282:         
+283:         return $base_currency;
+284:     }
+285: }
+286: 
+287: /**
+288:  * Initialize the plugin
+289:  */
+290: function currify_currency_switcher() {
+291:     return Currify_Currency_Switcher::get_instance();
+292: }
+293: 
+294: // Start the plugin
+295: currify_currency_switcher();
+
+
+
+
+
+================================================================
+End of Codebase
+================================================================
